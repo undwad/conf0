@@ -54,7 +54,6 @@ static int bytes(lua_State *L)
 
 #if defined(WIN32)
 #	include "dns_sd.h"
-#	define conf0RequestError kDNSServiceErr_NoError
 #	pragma comment(lib, "dnssd.lib")
 #	pragma comment(lib, "ws2_32.lib")
 #elif defined(OSX)
@@ -119,7 +118,7 @@ static int bytes(lua_State *L)
 
 
 #define returnContext(name) \
-	if(conf0RequestError == error) \
+	if(kDNSServiceErr_NoError == error) \
 	{ \
 		lua_pushlightuserdata(L, ctx); \
 		return 1; \
