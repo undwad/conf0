@@ -1,4 +1,4 @@
-#include "../inc/sysdefs.h"
+//#include "../inc/sysdefs.h"
 
 #include <iostream>
 #include <string>
@@ -8,7 +8,7 @@ using namespace std;
 
 #include "dns_sd.h"
 
-#include "../inc/lua/lua.hpp"
+#include "lua/lua.hpp"
 
 #pragma comment(lib, "dnssd.lib")
 #pragma comment(lib, "ws2_32.lib")
@@ -292,6 +292,6 @@ void main()
 	shared_ptr<lua_State> L(luaL_newstate(), lua_close);
 	luaL_openlibs(&*L);
 	conf0::reg(&*L);
-    if(luaL_loadfile(&*L, "zeroconf.lua") || lua_pcall(&*L, 0, 0, 0))    
+    if(luaL_loadfile(&*L, "test.lua") || lua_pcall(&*L, 0, 0, 0))    
 		printf("ERROR: %s\n", lua_tostring(&*L, -1));
 }
