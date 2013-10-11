@@ -5,6 +5,11 @@ byte = string.byte
 
 function inet_ntoa(addr) return byte(addr[1])..'.'..byte(addr[2])..'.'..byte(addr[3])..'.'..byte(addr[4]) end
 
+function port2opaque(port)
+	local bytes = conf0.bytes(port)
+	return byte(bytes, 1) * 256 + byte(bytes, 2)
+end
+
 function conf0.once(func, ...)
 	local args = {...}
 	local client, error, code = func(table.unpack(args))
@@ -39,13 +44,11 @@ end)
 
 print(prettytostring(domains))
 
-local bytes = conf0.bytes(5500)
-local port = byte(bytes, 1) * 256 + byte(bytes, 2)
 local me, error, code = conf0.register("_http._tcp", function(res) 
 	print(prettytostring(res))
-end, 'conf0test', nil, port)
-conf0.handle(me)
+end, 'conf0test', nil, port2opaque(5500))
 if not me then print(error, code) end
+conf0.handle(me)
 
 local items = {}
 
@@ -55,8 +58,7 @@ conf0.wait(conf0.browse, function(item)
 		item.fullname = res.fullname
 		item.hosttarget = res.hosttarget
 		item.opaqueport = res.opaqueport
-		local bytes = conf0.bytes(res.opaqueport)
-		item.port = byte(bytes, 1) * 256 + byte(bytes, 2)
+		item.port = port2opaque(res.opaqueport)
 		conf0.once(conf0.query, item.hosttarget, 1, function(res) 
 			item.ip = inet_ntoa(res.data)
 		end) 
