@@ -203,17 +203,51 @@ static int query(lua_State *L)
 	returnContext("query request");
 }
 
+static void DNSSD_API registerReply(DNSServiceRef client, DNSServiceFlags flags, DNSServiceErrorType error, const char* name, const char* type, const char* domain, void* context)
+{
+	beginReplyCallback();
+	luaSetUnsignedField(L, -2, "flags", flags);
+	luaSetIntegerField(L, -2, "error", error);
+	luaSetStringField(L, -2, "name", name);
+	luaSetStringField(L, -2, "type", type);
+	luaSetStringField(L, -2, "domain", domain);
+	endReplyCallback("register reply");
+}
+
 static int _register(lua_State *L) 
 {
 	luaMandatoryStringParam(L, 1, type);
-	luaOptionalStringParam(L, 2, name, nullptr);
-	luaOptionalStringParam(L, 3, host, nullptr);
-	luaOptionalUnsignedParam(L, 4, port, 0);
-	luaOptionalStringParam(L, 5, domain, nullptr);
-	luaOptionalUnsignedParam(L, 6, _interface, 0);
-	luaOptionalUnsignedParam(L, 7, flags, 0);
-	//int error = DNSServiceRegister(&ctx->client, flags, _interface, fullname, recordtype, recordclass, queryReply, ctx);
-	//returnContext("query request");
+	luaMandatoryCallbackParam(L, 2, ctx);
+	luaOptionalStringParam(L, 3, name, nullptr);
+	luaOptionalStringParam(L, 4, host, nullptr);
+	luaOptionalUnsignedParam(L, 5, port, 0);
+	luaOptionalStringParam(L, 6, domain, nullptr);
+	luaOptionalUnsignedParam(L, 7, _interface, 0);
+	luaOptionalUnsignedParam(L, 8, flags, 0);
+	luaOptionalStringParam(L, 9, text, nullptr);
+	luaOptionalUnsignedParam(L, 10, textlen, 0);
+	int error = DNSServiceRegister(&ctx->client, flags, _interface, name, type, domain, host, port, textlen, text, registerReply, ctx);
+	returnContext("register request");
+	return 0;
+}
+
+static void DNSSD_API enumdomainsReply(DNSServiceRef client, DNSServiceFlags flags, uint32_t _interface, DNSServiceErrorType error, const char* domain, void* context)
+{
+	beginReplyCallback();
+	luaSetUnsignedField(L, -2, "flags", flags);
+	luaSetUnsignedField(L, -2, "interface", _interface);
+	luaSetIntegerField(L, -2, "error", error);
+	luaSetStringField(L, -2, "domain", domain);
+	endReplyCallback("register reply");
+}
+
+static int enumdomains(lua_State *L) 
+{
+	luaMandatoryCallbackParam(L, 1, ctx);
+	luaOptionalUnsignedParam(L, 2, _interface, 0);
+	luaOptionalUnsignedParam(L, 3, flags, kDNSServiceFlagsBrowseDomains);
+	int error = DNSServiceEnumerateDomains(&ctx->client, flags, _interface, enumdomainsReply, ctx);
+	returnContext("enumdomains request");
 	return 0;
 }
 
@@ -264,6 +298,8 @@ static const struct luaL_Reg lib[] =
 	{"browse", browse},
 	{"resolve", resolve},
 	{"query", query},
+	{"register", _register},
+	{"enumdomains", enumdomains},
 	{"handle", handle},
 	{"stop", stop},
     {nullptr, nullptr},
