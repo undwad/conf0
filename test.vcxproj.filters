@@ -100,9 +100,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="zeroconf.lua" />
-  </ItemGroup>
-  <ItemGroup>
     <Filter Include="lua">
       <UniqueIdentifier>{b981accc-2f1f-4e81-adf3-e786c7e99520}</UniqueIdentifier>
     </Filter>
@@ -183,5 +180,8 @@
     <ClInclude Include="lua\lzio.h">
       <Filter>lua</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="test.lua" />
   </ItemGroup>
 </Project>

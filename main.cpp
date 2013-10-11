@@ -29,14 +29,15 @@ int luaerror(lua_State *L, const char* text, int code = 0)
 #define luaSetStringField(L, index, name, value) luaSetField(L, index, name, value, lua_pushstring)
 #define luaSetCFunctionField(L, index, name, value) luaSetField(L, index, name, value, lua_pushcfunction)
 #define luaSetUserDataField(L, index, name, value) luaSetField(L, index, name, value, lua_pushlightuserdata)
+#define luaSetLStringField(L, index, name, value, len) lua_pushlstring(L, (const char*)value, len); lua_setfield(L, index, name)
 
 #define luaParam(L, index, type, name, isproc, toproc) \
-	if(!isproc(L, index)) return luaerror(L, "parameter domain must be a valid "#type, index); \
+	if(!isproc(L, index)) return luaerror(L, "parameter "#name##" must be a valid "#type, index); \
 	name = toproc(L, index); 
 
 #define luaMandatoryParam(L, index, type, name, isproc, toproc) \
-		type name; \
-		luaParam(L, index, type, name, isproc, toproc);
+	type name; \
+	luaParam(L, index, type, name, isproc, toproc);
 
 #define luaMandatoryBooleanParam(L, index, name) luaMandatoryParam(L, index, bool, name, lua_isnumber, lua_toboolean)
 #define luaMandatoryNumberParam(L, index, name) luaMandatoryParam(L, index, float, name, lua_isnumber, lua_tonumber)
@@ -44,13 +45,17 @@ int luaerror(lua_State *L, const char* text, int code = 0)
 #define luaMandatoryUnsignedParam(L, index, name) luaMandatoryParam(L, index, unsigned int, name, lua_isnumber, lua_tounsigned)
 #define luaMandatoryStringParam(L, index, name) luaMandatoryParam(L, index, const char*, name, lua_isstring, lua_tostring)
 #define luaMandatoryUserDataParam(L, index, name) luaMandatoryParam(L, index, void*, name, lua_isuserdata, lua_touserdata)
+#define luaMandatoryCallbackParam(L, index, name) \
+	if(!lua_isfunction(L, index)) return luaerror(L, "parameter "#name##" must be a valid function", index); \
+	lua_pushvalue(L, index); \
+	Context* name = new Context(L, luaL_ref(L, LUA_REGISTRYINDEX));
 
 #define luaOptionalParam(L, index, type, name, value, isproc, toproc) \
-		type name = value; \
-		if(!lua_isnoneornil(L, index)) \
-		{ \
-			luaParam(L, index, type, name, isproc, toproc); \
-		}
+	type name = value; \
+	if(!lua_isnoneornil(L, index)) \
+	{ \
+		luaParam(L, index, type, name, isproc, toproc); \
+	}
 
 #define luaOptionalBooleanParam(L, index, name, value) luaOptionalParam(L, index, bool, name, value, lua_isnumber, lua_toboolean)
 #define luaOptionalNumberParam(L, index, name, value) luaOptionalParam(L, index, float, name, value, lua_isnumber, lua_tonumber)
@@ -102,10 +107,7 @@ struct conf0
 
 	static int browse(lua_State *L) 
 	{
-		if(!lua_isfunction(L, 1)) return luaerror(L, "parameter 1 (callback) must be a valid function");
-		lua_pushvalue(L, 1);
-		Context* ctx = new Context(L, luaL_ref(L, LUA_REGISTRYINDEX));
-		
+		luaMandatoryCallbackParam(L, 1, ctx);
 		luaOptionalStringParam(L, 2, type, "");
 		luaOptionalStringParam(L, 3, domain, "");
 		luaOptionalUnsignedParam(L, 4, _interface, 0);
@@ -138,12 +140,9 @@ struct conf0
 		luaSetStringField(L, -2, "fullname", fullname);
 		luaSetStringField(L, -2, "hosttarget", hosttarget);
 		luaSetUnsignedField(L, -2, "opaqueport", opaqueport);
-
 		union { uint16_t s; u_char b[2]; } port = { opaqueport };
 		luaSetUnsignedField(L, -2, "port", ((uint16_t)port.b[0]) << 8 | port.b[1]);
-
-		lua_pushlstring(L, (const char*)text, textlen);
-		lua_setfield(L, -2, "text");
+		luaSetLStringField(L, -2, "text", text, textlen);
 
 		if(lua_pcall(L, 1, 0, 0))
 		{
@@ -157,11 +156,7 @@ struct conf0
 		luaMandatoryStringParam(L, 1, name);
 		luaMandatoryStringParam(L, 2, type);
 		luaMandatoryStringParam(L, 3, domain);
-
-		if(!lua_isfunction(L, 4)) return luaerror(L, "parameter 4 (callback) must be a valid function");
-		lua_pushvalue(L, 4);
-		Context* ctx = new Context(L, luaL_ref(L, LUA_REGISTRYINDEX));
-
+		luaMandatoryCallbackParam(L, 4, ctx);
 		luaOptionalUnsignedParam(L, 5, _interface, 0);
 		luaOptionalUnsignedParam(L, 6, flags, 0);
 		
@@ -193,9 +188,7 @@ struct conf0
 		luaSetUnsignedField(L, -2, "hosttarget", recordtype);
 		luaSetUnsignedField(L, -2, "hosttarget", recordclass);
 		luaSetUnsignedField(L, -2, "ttl", ttl);
-
-		lua_pushlstring(L, (const char*)data, datalen);
-		lua_setfield(L, -2, "data");
+		luaSetLStringField(L, -2, "data", data, datalen);
 
 		if(lua_pcall(L, 1, 0, 0))
 		{
@@ -208,11 +201,7 @@ struct conf0
 	{
 		luaMandatoryStringParam(L, 1, fullname);
 		luaMandatoryUnsignedParam(L, 2, recordtype);
-
-		if(!lua_isfunction(L, 3)) return luaerror(L, "parameter 3 (callback) must be a valid function");
-		lua_pushvalue(L, 3);
-		Context* ctx = new Context(L, luaL_ref(L, LUA_REGISTRYINDEX));
-
+		luaMandatoryCallbackParam(L, 3, ctx);
 		luaOptionalUnsignedParam(L, 4, _interface, 0);
 		luaOptionalUnsignedParam(L, 5, flags, 0);
 		luaOptionalUnsignedParam(L, 6, recordclass, kDNSServiceClass_IN);
