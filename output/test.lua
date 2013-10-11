@@ -37,18 +37,11 @@ function conf0.wait(func, ...)
 end
 
 local domains = {}
-
-conf0.once(conf0.enumdomains, function(res) 
-	domains[#domains + 1] = res
-end)
-
+conf0.once(conf0.enumdomains, function(res) domains[#domains + 1] = res end)
 print(prettytostring(domains))
 
-local me, error, code = conf0.register("_http._tcp", function(res) 
-	print(prettytostring(res))
-end, 'conf0test', nil, port2opaque(5500))
-if not me then print(error, code) end
-conf0.handle(me)
+local me, error, code = conf0.register("_http._tcp", function(res) print(prettytostring(res)) end, 'conf0test', nil, port2opaque(5500))
+if me then conf0.handle(me) else print(error, code) end
 
 local items = {}
 

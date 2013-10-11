@@ -5,6 +5,29 @@
 ** see copyright notice in conf0.h
 */
 
+#if defined( __SYMBIAN32__ ) 
+#	define SYMBIAN
+#elif defined( __WIN32__ ) || defined( _WIN32 ) || defined( WIN32 )
+#	ifndef WIN32
+#		define WIN32
+#	endif
+#elif defined( __APPLE_CC__)
+#   if __ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__ >= 40000 || __IPHONE_OS_VERSION_MIN_REQUIRED >= 40000
+#		define IOS
+#   else
+#		define OSX
+#   endif
+#elif defined(linux) && defined(__arm__)
+#	define TEGRA2
+#elif defined(__ANDROID__)
+#	define ANDROID
+#elif defined( __native_client__ ) 
+#	define NATIVECLIENT
+#else
+#	define LINUX
+#endif
+
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -29,10 +52,16 @@ static int bytes(lua_State *L)
 	} 
 }
 
-#include "dns_sd.h"
-
-#pragma comment(lib, "dnssd.lib")
-#pragma comment(lib, "ws2_32.lib")
+#if defined(WIN32)
+#	include "dns_sd.h"
+#	define conf0RequestError kDNSServiceErr_NoError
+#	define conf0ClientType DNSServiceRef
+#	define conf0FreeClient DNSServiceRefDeallocate
+#	pragma comment(lib, "dnssd.lib")
+#	pragma comment(lib, "ws2_32.lib")
+#elif defined(OSX)
+#elif defined(LINUX)
+#endif
 
 #define luaSetField(L, index, name, value, proc) proc(L, value); lua_setfield(L, index, name)
 #define luaSetBooleanField(L, index, name, value) luaSetField(L, index, name, value, lua_pushboolean)
@@ -90,10 +119,9 @@ static int bytes(lua_State *L)
 		lua_pop(L, 1); \
 	}	
 
-#define requestError kDNSServiceErr_NoError
 
 #define returnContext(name) \
-	if(requestError == error) \
+	if(conf0RequestError == error) \
 	{ \
 		lua_pushlightuserdata(L, ctx); \
 		return 1; \
@@ -107,7 +135,7 @@ static int bytes(lua_State *L)
 struct Context
 {
 	lua_State *L;
-	DNSServiceRef client;
+	conf0ClientType client;
 	int callback;
 
 	Context(lua_State *l, int c) : L(l), callback(c), client(nullptr) { }
@@ -117,7 +145,7 @@ struct Context
 		if (LUA_NOREF != callback) 
 			luaL_unref(L, LUA_REGISTRYINDEX, callback); 
 		if(client)
-			DNSServiceRefDeallocate(client);
+			conf0FreeClient(client);
 	}
 };
 
