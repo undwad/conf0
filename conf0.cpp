@@ -31,10 +31,6 @@ static int bytes(lua_State *L)
 
 #include "dns_sd.h"
 
-#pragma comment(lib, "liblua52.a")
-#pragma comment(lib, "dnssd.lib")
-#pragma comment(lib, "ws2_32.lib")
-
 #define luaSetField(L, index, name, value, proc) proc(L, value); lua_setfield(L, index, name)
 #define luaSetBooleanField(L, index, name, value) luaSetField(L, index, name, value, lua_pushboolean)
 #define luaSetNumberField(L, index, name, value) luaSetField(L, index, name, value, lua_pushnumber)
