@@ -31,6 +31,7 @@ static int bytes(lua_State *L)
 
 #include "dns_sd.h"
 
+#pragma comment(lib, "liblua52.a")
 #pragma comment(lib, "dnssd.lib")
 #pragma comment(lib, "ws2_32.lib")
 

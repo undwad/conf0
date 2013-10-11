@@ -1,3 +1,4 @@
+require 'conf0'
 require 'std'
 
 function string.starts(text, start) return string.sub(text, 1, string.len(start)) == start end

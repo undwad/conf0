@@ -1,5 +1,4 @@
-LIBRARY lfs.dll
-DESCRIPTION "LuaFileSystem"
-VERSION 1.5.0
+LIBRARY conf0.dll
+DESCRIPTION "zeroconf lib for lua"
 EXPORTS
-luaopen_lfs
+luaopen_conf0
