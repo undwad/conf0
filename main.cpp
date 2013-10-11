@@ -64,6 +64,33 @@ int luaerror(lua_State *L, const char* text, int code = 0)
 #define luaOptionalStringParam(L, index, name, value) luaOptionalParam(L, index, const char*, name, value, lua_isstring, lua_tostring)
 #define luaOptionalUserDataParam(L, index, name, value) luaOptionalParam(L, index, void*, name, value, lua_isuserdata, lua_touserdata)
 
+#define beginReplyCallback() \
+	Context* ctx = (Context*)context; \
+	lua_State *L = ctx->L; \
+	lua_rawgeti(L, LUA_REGISTRYINDEX, ctx->callback); \
+	lua_newtable(L); 
+
+#define endReplyCallback(name) \
+	if(lua_pcall(L, 1, 0, 0)) \
+	{ \
+		fprintf(stderr, name##" callback error %s\n", lua_tostring(L, -1)); \
+		lua_pop(L, 1); \
+	}	
+
+#define requestError kDNSServiceErr_NoError
+
+#define returnContext(name) \
+	if(requestError == error) \
+	{ \
+		lua_pushlightuserdata(L, ctx); \
+		return 1; \
+	} \
+	else \
+	{ \
+		delete ctx; \
+		return luaerror(L, name##" failed", error); \
+	}
+
 struct conf0
 {
 	struct Context
@@ -85,24 +112,14 @@ struct conf0
 
 	static void DNSSD_API browseReply(DNSServiceRef client, const DNSServiceFlags flags, uint32_t _interface, DNSServiceErrorType error, const char* name, const char* type, const char* domain, void* context)
 	{
-		Context* ctx = (Context*)context;
-		lua_State *L = ctx->L;
-		
-		lua_rawgeti(L, LUA_REGISTRYINDEX, ctx->callback);
-
-		lua_newtable(L); 
+		beginReplyCallback();
 		luaSetUnsignedField(L, -2, "flags", flags);
 		luaSetUnsignedField(L, -2, "interface", _interface);
 		luaSetIntegerField(L, -2, "error", error);
 		luaSetStringField(L, -2, "name", name);
 		luaSetStringField(L, -2, "type", type);
 		luaSetStringField(L, -2, "domain", domain);
-
-		if(lua_pcall(L, 1, 0, 0))
-		{
-			fprintf(stderr, "browseReply() callback error %s\n", lua_tostring(L, -1));
-			lua_pop(L, 1);
-		}
+		endReplyCallback("browse reply");
 	}
 
 	static int browse(lua_State *L) 
@@ -112,28 +129,13 @@ struct conf0
 		luaOptionalStringParam(L, 3, domain, "");
 		luaOptionalUnsignedParam(L, 4, _interface, 0);
 		luaOptionalUnsignedParam(L, 5, flags, 0);
-		
 		int error = DNSServiceBrowse(&ctx->client, flags, _interface, type, domain, browseReply, ctx);
-		if(kDNSServiceErr_NoError == error)
-		{
-			lua_pushlightuserdata(L, ctx);
-			return 1;
-		}
-		else
-		{
-			delete ctx;
-			return luaerror(L, "DNSServiceBrowse() failed", error);
-		}
+		returnContext("browse request");
 	}
 
 	static void DNSSD_API resolveReply(DNSServiceRef client, const DNSServiceFlags flags, uint32_t _interface, DNSServiceErrorType error,	const char* fullname, const char* hosttarget, uint16_t opaqueport, uint16_t textlen, const unsigned char* text, void* context)
 	{
-		Context* ctx = (Context*)context;
-		lua_State *L = ctx->L;
-		
-		lua_rawgeti(L, LUA_REGISTRYINDEX, ctx->callback);
-
-		lua_newtable(L); 
+		beginReplyCallback();
 		luaSetUnsignedField(L, -2, "flags", flags);
 		luaSetUnsignedField(L, -2, "interface", _interface);
 		luaSetIntegerField(L, -2, "error", error);
@@ -143,12 +145,7 @@ struct conf0
 		union { uint16_t s; u_char b[2]; } port = { opaqueport };
 		luaSetUnsignedField(L, -2, "port", ((uint16_t)port.b[0]) << 8 | port.b[1]);
 		luaSetLStringField(L, -2, "text", text, textlen);
-
-		if(lua_pcall(L, 1, 0, 0))
-		{
-			fprintf(stderr, "resolveReply() callback error %s\n", lua_tostring(L, -1));
-			lua_pop(L, 1);
-		}
+		endReplyCallback("resolve reply");
 	}
 
 	static int resolve(lua_State *L) 
@@ -159,28 +156,13 @@ struct conf0
 		luaMandatoryCallbackParam(L, 4, ctx);
 		luaOptionalUnsignedParam(L, 5, _interface, 0);
 		luaOptionalUnsignedParam(L, 6, flags, 0);
-		
 		int error = DNSServiceResolve(&ctx->client, flags, _interface, name, type, domain, resolveReply, ctx);
-		if(kDNSServiceErr_NoError == error)
-		{
-			lua_pushlightuserdata(L, ctx);
-			return 1;
-		}
-		else
-		{
-			delete ctx;
-			return luaerror(L, "DNSServiceBrowse() failed", error);
-		}
+		returnContext("resolve request");
 	}
 
 	static void DNSSD_API queryReply(DNSServiceRef client, const DNSServiceFlags flags, uint32_t _interface, DNSServiceErrorType error,	const char* fullname, uint16_t recordtype, uint16_t recordclass, uint16_t datalen, const void* data, uint32_t ttl, void* context)
 	{
-		Context* ctx = (Context*)context;
-		lua_State *L = ctx->L;
-		
-		lua_rawgeti(L, LUA_REGISTRYINDEX, ctx->callback);
-
-		lua_newtable(L); 
+		beginReplyCallback();
 		luaSetUnsignedField(L, -2, "flags", flags);
 		luaSetUnsignedField(L, -2, "interface", _interface);
 		luaSetIntegerField(L, -2, "error", error);
@@ -189,12 +171,7 @@ struct conf0
 		luaSetUnsignedField(L, -2, "hosttarget", recordclass);
 		luaSetUnsignedField(L, -2, "ttl", ttl);
 		luaSetLStringField(L, -2, "data", data, datalen);
-
-		if(lua_pcall(L, 1, 0, 0))
-		{
-			fprintf(stderr, "queryReply() callback error %s\n", lua_tostring(L, -1));
-			lua_pop(L, 1);
-		}
+		endReplyCallback("query reply");
 	}
 
 	static int query(lua_State *L) 
@@ -205,27 +182,15 @@ struct conf0
 		luaOptionalUnsignedParam(L, 4, _interface, 0);
 		luaOptionalUnsignedParam(L, 5, flags, 0);
 		luaOptionalUnsignedParam(L, 6, recordclass, kDNSServiceClass_IN);
-		
 		int error = DNSServiceQueryRecord(&ctx->client, flags, _interface, fullname, recordtype, recordclass, queryReply, ctx);
-		if(kDNSServiceErr_NoError == error)
-		{
-			lua_pushlightuserdata(L, ctx);
-			return 1;
-		}
-		else
-		{
-			delete ctx;
-			return luaerror(L, "DNSServiceBrowse() failed", error);
-		}
+		returnContext("query request");
 	}
 
 	static int handle(lua_State *L) 
 	{
 		luaMandatoryUserDataParam(L, 1, context);
 		luaOptionalUnsignedParam(L, 2, timeout, 5000);
-
 		Context* ctx = (Context*)context;
-
 		int dns_sd_fd  = DNSServiceRefSockFD(ctx->client);
 		int nfds = dns_sd_fd + 1;
 		fd_set readfds;
@@ -250,7 +215,6 @@ struct conf0
 			lua_pushboolean(L, false);
 			return 1;
 		}
-
 		lua_pushboolean(L, true);
 		return 1;
 	}
