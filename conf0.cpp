@@ -55,8 +55,6 @@ static int bytes(lua_State *L)
 #if defined(WIN32)
 #	include "dns_sd.h"
 #	define conf0RequestError kDNSServiceErr_NoError
-#	define conf0ClientType DNSServiceRef
-#	define conf0FreeClient DNSServiceRefDeallocate
 #	pragma comment(lib, "dnssd.lib")
 #	pragma comment(lib, "ws2_32.lib")
 #elif defined(OSX)
@@ -135,7 +133,7 @@ static int bytes(lua_State *L)
 struct Context
 {
 	lua_State *L;
-	conf0ClientType client;
+	DNSServiceRef client;
 	int callback;
 
 	Context(lua_State *l, int c) : L(l), callback(c), client(nullptr) { }
@@ -145,7 +143,7 @@ struct Context
 		if (LUA_NOREF != callback) 
 			luaL_unref(L, LUA_REGISTRYINDEX, callback); 
 		if(client)
-			conf0FreeClient(client);
+			DNSServiceRefDeallocate(client);
 	}
 };
 
