@@ -98,6 +98,7 @@
     <ClCompile Include="lua\lzio.c">
       <Filter>lua</Filter>
     </ClCompile>
+    <ClCompile Include="conf0.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="lua">

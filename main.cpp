@@ -4,8 +4,11 @@
 #include <string>
 #include <memory>
 
-#include "lua/lua.hpp"
+#include "lua.hpp"
+
+//extern "C" {
 #include "conf0.h"
+//}
 
 using namespace std;
 
