@@ -3,6 +3,10 @@ require 'std'
 function string.starts(text, start) return string.sub(text, 1, string.len(start)) == start end
 function string.ends(text, finish) return finish == '' or string.sub(text, -string.len(finish)) == finish end
 
+byte = string.byte
+
+function inet_ntoa(addr) return byte(addr[1])..'.'..byte(addr[2])..'.'..byte(addr[3])..'.'..byte(addr[4]) end
+
 function conf0.once(func, ...)
 	local args = {...}
 	local client, error, code = func(table.unpack(args))
@@ -24,7 +28,7 @@ local browser, error, code = conf0.browse(function(item)
 			item.opaqueport = res.opaqueport
 			item.port = res.port
 			conf0.once(conf0.query, item.hosttarget, 1, function(res) 
-				item.ip = string.byte(res.data[1])..'.'..string.byte(res.data[2])..'.'..string.byte(res.data[3])..'.'..string.byte(res.data[4])
+				item.ip = inet_ntoa(res.data)
 			end) 
 		end) 
 	end
