@@ -161,8 +161,6 @@ static void DNSSD_API resolveReply(DNSServiceRef client, const DNSServiceFlags f
 	luaSetStringField(L, -2, "fullname", fullname);
 	luaSetStringField(L, -2, "hosttarget", hosttarget);
 	luaSetUnsignedField(L, -2, "opaqueport", opaqueport);
-	union { uint16_t s; u_char b[2]; } port = { opaqueport };
-	luaSetUnsignedField(L, -2, "port", ((uint16_t)port.b[0]) << 8 | port.b[1]);
 	luaSetLStringField(L, -2, "text", text, textlen);
 	endReplyCallback("resolve reply");
 }

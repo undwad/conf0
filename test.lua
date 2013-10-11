@@ -26,7 +26,8 @@ local browser, error, code = conf0.browse(function(item)
 			item.fullname = res.fullname
 			item.hosttarget = res.hosttarget
 			item.opaqueport = res.opaqueport
-			item.port = res.port
+			local bytes = conf0.bytes(res.opaqueport)
+			item.port = byte(bytes, 1) * 256 + byte(bytes, 2)
 			conf0.once(conf0.query, item.hosttarget, 1, function(res) 
 				item.ip = inet_ntoa(res.data)
 			end) 
