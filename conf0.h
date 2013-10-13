@@ -78,7 +78,7 @@ typedef void (*conf0_resolver_callback)
 	bool error, 
 	const char* fullname, 
 	const char* hosttarget, 
-	unsigned short port, 
+	unsigned short opaqueport, 
 	unsigned short textlen, 
 	const unsigned char* text, 
 	void* userdata

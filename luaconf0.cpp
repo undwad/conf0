@@ -207,86 +207,60 @@ endNewContext(conf0_enumdomain_alloc, conf0_enumdomain_free, callback, ((ctx_t*)
 /* BROWSER */
 
 beginReplyCallback(browser_callback, const char* name, const char* type, const char* domain)
-	luaSetStringField(L, -2, "name", name);
-	luaSetStringField(L, -2, "type", type);
+	luaSetStringField(L, -2, "name", name)
+	luaSetStringField(L, -2, "type", type)
 	luaSetStringField(L, -2, "domain", domain)
 endReplyCallback(browser_callback)
 
-beginNewContext(browse, const char* type, const char* domain)
+beginNewContext(browse)
 	luaMandatoryUserDataParam(L, 1, common_context)
 	luaMandatoryCallbackParam(L, 2, callback) 
-	luaOptionalStringParam(L, 3, type, "");
-	luaOptionalStringParam(L, 4, domain, "");
+	luaOptionalStringParam(L, 3, type, "")
+	luaOptionalStringParam(L, 4, domain, "")
 	luaOptionalUnsignedParam(L, 5, flags, 0) 
 	luaOptionalUnsignedParam(L, 6, _interface, 0) 
 endNewContext(conf0_browser_alloc, conf0_browser_free, callback, ((ctx_t*)common_context)->context, flags, _interface, type, domain, browser_callback, userdata)
 
-
 /* RESOLVER */
+
+beginReplyCallback(resolver_callback, const char* fullname, const char* hosttarget, unsigned short opaqueport, unsigned short textlen, const unsigned char* text)
+	luaSetStringField(L, -2, "fullname", fullname);
+	luaSetStringField(L, -2, "hosttarget", hosttarget);
+	luaSetUnsignedField(L, -2, "opaqueport", opaqueport)
+	luaSetLStringField(L, -2, "text", text, textlen);
+endReplyCallback(resolver_callback)
+
+beginNewContext(resolve)
+	luaMandatoryUserDataParam(L, 1, common_context)
+	luaMandatoryStringParam(L, 2, name) 
+	luaMandatoryStringParam(L, 3, type) 
+	luaMandatoryStringParam(L, 4, domain) 
+	luaMandatoryCallbackParam(L, 5, callback) 
+	luaOptionalUnsignedParam(L, 6, flags, 0) 
+	luaOptionalUnsignedParam(L, 7, _interface, 0) 
+endNewContext(conf0_resolver_alloc, conf0_resolver_free, callback, ((ctx_t*)common_context)->context, flags, _interface, name, type, domain, resolver_callback, userdata)
 
 /* QUERY */
 
-//static void DNSSD_API browseReply(DNSServiceRef client, const DNSServiceFlags flags, uint32_t _interface, DNSServiceErrorType error, const char* name, const char* type, const char* domain, void* context)
-//{
-//	beginReplyCallback();
-//	luaSetUnsignedField(L, -2, "flags", flags);
-//	luaSetUnsignedField(L, -2, "interface", _interface);
-//	luaSetIntegerField(L, -2, "error", error);
-//	luaSetStringField(L, -2, "name", name);
-//	luaSetStringField(L, -2, "type", type);
-//	luaSetStringField(L, -2, "domain", domain);
-//	endReplyCallback("browse reply");
-//}
-//
-//static int browse(lua_State *L) 
-//{
-//	luaMandatoryCallbackParam(L, 1, ctx);
-//	luaOptionalStringParam(L, 2, type, "");
-//	luaOptionalStringParam(L, 3, domain, "");
-//	luaOptionalUnsignedParam(L, 4, _interface, 0);
-//	luaOptionalUnsignedParam(L, 5, flags, 0);
-//	int error = DNSServiceBrowse(&ctx->client, flags, _interface, type, domain, browseReply, ctx);
-//	returnContext("browse request");
-//}
-//
-//static void DNSSD_API resolveReply(DNSServiceRef client, const DNSServiceFlags flags, uint32_t _interface, DNSServiceErrorType error, const char* fullname, const char* hosttarget, uint16_t opaqueport, uint16_t textlen, const unsigned char* text, void* context)
-//{
-//	beginReplyCallback();
-//	luaSetUnsignedField(L, -2, "flags", flags);
-//	luaSetUnsignedField(L, -2, "interface", _interface);
-//	luaSetIntegerField(L, -2, "error", error);
-//	luaSetStringField(L, -2, "fullname", fullname);
-//	luaSetStringField(L, -2, "hosttarget", hosttarget);
-//	luaSetUnsignedField(L, -2, "opaqueport", opaqueport);
-//	luaSetLStringField(L, -2, "text", text, textlen);
-//	endReplyCallback("resolve reply");
-//}
-//
-//static int resolve(lua_State *L) 
-//{
-//	luaMandatoryStringParam(L, 1, name);
-//	luaMandatoryStringParam(L, 2, type);
-//	luaMandatoryStringParam(L, 3, domain);
-//	luaMandatoryCallbackParam(L, 4, ctx);
-//	luaOptionalUnsignedParam(L, 5, _interface, 0);
-//	luaOptionalUnsignedParam(L, 6, flags, 0);
-//	int error = DNSServiceResolve(&ctx->client, flags, _interface, name, type, domain, resolveReply, ctx);
-//	returnContext("resolve request");
-//}
-//
-//static void DNSSD_API queryReply(DNSServiceRef client, const DNSServiceFlags flags, uint32_t _interface, DNSServiceErrorType error,	const char* fullname, uint16_t recordtype, uint16_t recordclass, uint16_t datalen, const void* data, uint32_t ttl, void* context)
-//{
-//	beginReplyCallback();
-//	luaSetUnsignedField(L, -2, "flags", flags);
-//	luaSetUnsignedField(L, -2, "interface", _interface);
-//	luaSetIntegerField(L, -2, "error", error);
-//	luaSetStringField(L, -2, "fullname", fullname);
-//	luaSetUnsignedField(L, -2, "hosttarget", recordtype);
-//	luaSetUnsignedField(L, -2, "hosttarget", recordclass);
-//	luaSetUnsignedField(L, -2, "ttl", ttl);
-//	luaSetLStringField(L, -2, "data", data, datalen);
-//	endReplyCallback("query reply");
-//}
+beginReplyCallback(query_callback, const char* fullname, unsigned short type, unsigned short class_, unsigned short datalen, const void* data, unsigned int ttl)
+	luaSetStringField(L, -2, "fullname", fullname);
+	luaSetUnsignedField(L, -2, "type", type);
+	luaSetUnsignedField(L, -2, "class", class_);
+	luaSetLStringField(L, -2, "data", data, datalen);
+	luaSetUnsignedField(L, -2, "ttl", ttl);
+endReplyCallback(query_callback)
+
+beginNewContext(query)
+	luaMandatoryUserDataParam(L, 1, common_context)
+	luaMandatoryStringParam(L, 2, fullname) 
+	luaMandatoryUnsignedParam(L, 3, type) 
+	luaMandatoryCallbackParam(L, 4, callback) 
+	luaOptionalUnsignedParam(L, 5, class_, 1) 
+	luaOptionalUnsignedParam(L, 6, flags, 0) 
+	luaOptionalUnsignedParam(L, 7, _interface, 0) 
+endNewContext(conf0_query_alloc, conf0_query_free, callback, ((ctx_t*)common_context)->context, flags, _interface, fullname, type, class_, query_callback, userdata)
+
+
 //
 //static int query(lua_State *L) 
 //{
@@ -350,8 +324,8 @@ static const struct luaL_Reg lib[] =
 	{"common", common},
 	{"enumdomain", enumdomain},
 	{"browse", browse},
-	//{"resolve", resolve},
-	//{"query", query},
+	{"resolve", resolve},
+	{"query", query},
 	//{"register", _register},
 	{"iterate", iterate},
     {nullptr, nullptr},

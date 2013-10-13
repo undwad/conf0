@@ -147,8 +147,8 @@ void set_error(const char* text, int code)
 
 	/* RESOLVER */
 
-	CALLBACKDEF(resolver_callback, const char* fullname, const char* hosttarget, uint16_t port, uint16_t textlen, const unsigned char* text)
-		CALLBACKBODY(DNSServiceResolve, conf0_resolver_callback, fullname, hosttarget, port, textlen, text)
+	CALLBACKDEF(resolver_callback, const char* fullname, const char* hosttarget, uint16_t opaqueport, uint16_t textlen, const unsigned char* text)
+		CALLBACKBODY(DNSServiceResolve, conf0_resolver_callback, fullname, hosttarget, opaqueport, textlen, text)
 	FUNCDEF(conf0_resolver_alloc, conf0_resolver_callback, const char* name, const char* type, const char* domain)
 		FUNCBODY(DNSServiceResolve, name, type, domain, resolver_callback)
 	FREEPROC(conf0_resolver_free)

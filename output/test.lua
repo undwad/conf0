@@ -45,15 +45,15 @@ local items = {}
 
 conf0.wait(conf0.browse, common, function(item) 
 	items[#items + 1] = item	
-	--conf0.once(conf0.resolve, item.name, item.type, item.domain, function(res) 
-	--	item.fullname = res.fullname
-	--	item.hosttarget = res.hosttarget
-	--	item.opaqueport = res.opaqueport
-	--	item.port = port2opaque(res.opaqueport)
-		--conf0.once(conf0.query, item.hosttarget, 1, function(res) 
-		--item.ip = inet_ntoa(res.data)
-		--end) 
-	--end) 
+	conf0.once(conf0.resolve, common, item.name, item.type, item.domain, function(res) 
+		item.fullname = res.fullname
+		item.hosttarget = res.hosttarget
+		item.opaqueport = res.opaqueport
+		item.port = port2opaque(res.opaqueport)
+		conf0.once(conf0.query, common, item.hosttarget, 1, function(res) 
+			item.ip = inet_ntoa(res.data)
+		end) 
+	end) 
 end, "_http._tcp", "local.")
 
 print(prettytostring(items))
