@@ -89,9 +89,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="conf0.cpp" />
+    <ClCompile Include="luaconf0.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="conf0.h" />
+    <ClInclude Include="luaconf0.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="conf0.def" />

@@ -5,7 +5,123 @@
 ** see copyright notice at the end of this file
 */
 
-int luaopen_conf0(lua_State *L);
+#ifndef _CONF0_H__
+#define _CONF0_H__
+
+const char* conf0_get_last_error();
+
+/* COMMON */
+
+void* conf0_common_alloc();
+void conf0_common_free(void* common_context);
+
+/* DOMAIN */
+
+typedef void (*conf0_enumdomain_callback)
+(
+	void* enumdomain_context, 
+	unsigned int flags, 
+	unsigned int interface_, 
+	bool error, 
+	const char* domain, 
+	void* userdata
+);
+void* conf0_enumdomain_alloc
+(
+	void* common_context, 
+	unsigned int flags, 
+	unsigned int interface_, 
+	conf0_enumdomain_callback callback, 
+	void* userdata
+);
+void conf0_enumdomain_free(void* enumdomain_context);
+
+/* BROWSER */
+
+typedef void (*conf0_browser_callback)
+(
+	void* browser_context, 
+	unsigned int flags, 
+	unsigned int interface_, 
+	bool error, 
+	const char* name, 
+	const char* type, 
+	const char* domain, 
+	void* userdata
+);
+void* conf0_browser_alloc
+(
+	void* common_context, 
+	unsigned int flags, 
+	unsigned int interface_, 
+	const char* type, 
+	const char* domain, 
+	conf0_browser_callback callback, 
+	void* userdata
+);
+void conf0_browser_free(void* browser_context);
+
+/* RESOLVER */
+
+typedef void (*conf0_resolver_callback)
+(
+	void* resolver_context, 
+	unsigned int flags, 
+	unsigned int interface_, 
+	bool error, 
+	const char* fullname, 
+	const char* hosttarget, 
+	unsigned short port, 
+	unsigned short textlen, 
+	const unsigned char* text, 
+	void* userdata
+);
+void* conf0_resolver_alloc
+(
+	void* common_context, 
+	unsigned flags, 
+	unsigned interface_, 
+	const char* name,
+	const char* type,
+	const char* domain, 
+	conf0_resolver_callback callback, 
+	void* userdata
+);
+void conf0_resolver_free(void* resolver_context);
+
+/* QUERY */
+
+typedef void (*conf0_query_callback)
+(
+	void* query_context, 
+	unsigned int flags, 
+	unsigned int interface_, 
+	bool error, 
+	const char* fullname, 
+	unsigned short type, 
+	unsigned short class_,
+	unsigned short port, 
+	unsigned short datalen, 
+	const void* data, 
+	unsigned int ttl,
+	void* userdata
+);
+void* conf0_query_alloc
+(
+	void* common_context, 
+	unsigned flags, 
+	unsigned interface_, 
+	const char* fullname,
+	unsigned short type,
+	unsigned short class_, 
+	conf0_query_callback callback, 
+	void* userdata
+);
+void conf0_query_free(void* query_context);
+
+/* REGISTER */
+
+#endif // _CONF0_H__
 
 /******************************************************************************
 * Copyright (C) 2013 Undwad, Samara, Russia

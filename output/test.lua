@@ -48,9 +48,9 @@ conf0.wait(conf0.browse, function(item)
 		item.hosttarget = res.hosttarget
 		item.opaqueport = res.opaqueport
 		item.port = port2opaque(res.opaqueport)
-		conf0.once(conf0.query, item.hosttarget, 1, function(res) 
-			item.ip = inet_ntoa(res.data)
-		end) 
+		--conf0.once(conf0.query, item.hosttarget, 1, function(res) 
+		--item.ip = inet_ntoa(res.data)
+		--end) 
 	end) 
 end, "_http._tcp", "local.")
 
