@@ -92,10 +92,10 @@ const char* conf0_get_last_error() { return error; }
 
 	/* RESOLVER */
 
+	void DNSSD_API resolver_callback(DNSServiceRef ref, DNSServiceFlags flags, uint32_t interface_, DNSServiceErrorType error, const char* fullname, const char* hosttarget, uint16_t port, uint16_t textlen, const unsigned char* text, void* context)
+		CALLBACKBODY(DNSServiceResolve, conf0_resolver_callback, fullname, hosttarget, port, textlen, text)
 	void* conf0_resolver_alloc(void* common_context, unsigned int flags, unsigned int interface_, const char* name, const char* type, const char* domain, conf0_resolver_callback callback, void* userdata)
-	{
-	}
-
+		FUNCBODY(DNSServiceResolve, name, type, domain, resolver_callback)
 	void conf0_resolver_free(void* resolver_context) { DNSServiceRefDeallocate((DNSServiceRef)resolver_context); }
 
 	/* QUERY */
