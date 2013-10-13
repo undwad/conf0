@@ -104,7 +104,6 @@ typedef void (*conf0_query_callback)
 	const char* fullname, 
 	unsigned short type, 
 	unsigned short class_,
-	unsigned short port, 
 	unsigned short datalen, 
 	const void* data, 
 	unsigned int ttl,

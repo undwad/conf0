@@ -108,11 +108,11 @@ const char* conf0_get_last_error() { return error; }
 
 	/* QUERY */
 
-	void* conf0_query_alloc(void* common_context, unsigned int flags, unsigned int interface_, const char* fullname, unsigned short type, unsigned short class_, conf0_query_callback callback, void* userdata)	
-	{
-	}
-
-	void conf0_query_free(void* query_context) { DNSServiceRefDeallocate((DNSServiceRef)query_context); }
+	CALLBACKDEF(query_callback, const char* fullname, uint16_t type, uint16_t class_, uint16_t datalen, const void* data, uint32_t ttl)
+		CALLBACKBODY(DNSServiceQueryRecord, conf0_query_callback, fullname, type, class_, datalen, data, ttl)
+	FUNCDEF(conf0_query_alloc, conf0_query_callback, const char* fullname, unsigned short type, unsigned short class_)
+		FUNCBODY(DNSServiceQueryRecord, fullname, type, class_, query_callback)
+	FREEPROC(conf0_query_free)
 #elif defined(LINUX)
 #elif defined(OSX)
 #else
