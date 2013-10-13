@@ -8,6 +8,10 @@
 #ifndef _CONF0_H__
 #define _CONF0_H__
 
+#if !defined(nullptr)
+#	define nullptr NULL
+#endif
+
 const char* conf0_get_last_error();
 
 /* COMMON */
@@ -79,8 +83,8 @@ typedef void (*conf0_resolver_callback)
 void* conf0_resolver_alloc
 (
 	void* common_context, 
-	unsigned flags, 
-	unsigned interface_, 
+	unsigned int flags, 
+	unsigned int interface_, 
 	const char* name,
 	const char* type,
 	const char* domain, 
@@ -109,8 +113,8 @@ typedef void (*conf0_query_callback)
 void* conf0_query_alloc
 (
 	void* common_context, 
-	unsigned flags, 
-	unsigned interface_, 
+	unsigned int flags, 
+	unsigned int interface_, 
 	const char* fullname,
 	unsigned short type,
 	unsigned short class_, 
