@@ -50,16 +50,22 @@ void set_error(const char* text, int code)
 #	pragma comment(lib, "dnssd.lib")
 #	pragma comment(lib, "ws2_32.lib")
 
+	struct userdata_t
+	{
+		DNSServiceRef ref;
+		void* callback;
+		void* userdata;
+		userdata_t(void* callback_, void* userdata_) : ref(nullptr), callback(callback_), userdata(userdata_) { }
+	};
+
 #	define CALLBACKDEF(CALLBACK, ...) \
-	void DNSSD_API CALLBACK(DNSServiceRef ref, DNSServiceFlags flags, uint32_t interface_, DNSServiceErrorType error, __VA_ARGS__, void *context)
+	void DNSSD_API CALLBACK(DNSServiceRef ref, DNSServiceFlags flags, uint32_t interface_, DNSServiceErrorType error, __VA_ARGS__, void* userdata)
 
 #	define CALLBACKBODY(FUNC, CALLBACK, ...) \
 	{ \
-		context_t* context_ = (context_t*)context; \
+		userdata_t* userdata_ = (userdata_t*)userdata; \
 		if(kDNSServiceErr_NoError != error) set_error(#FUNC##"() failed", error); \
-		printf("%d %d\n", context_->callback, context_->userdata); \
-		((CALLBACK)context_->callback)(ref, flags, interface_, kDNSServiceErr_NoError != error, __VA_ARGS__, context_->userdata); \
-		delete context_; \
+		((CALLBACK)userdata_->callback)(ref, flags, interface_, kDNSServiceErr_NoError != error, __VA_ARGS__, userdata_->userdata); \
 	}
 
 #	define FUNCDEF(FUNC, CALLBACK, ...) \
@@ -68,33 +74,31 @@ void set_error(const char* text, int code)
 #	define FUNCBODY(FUNC, ...) \
 	{ \
 		DNSServiceRef ref = nullptr; \
-		context_t* context = new context_t(callback, userdata); \
-		DNSServiceErrorType error = FUNC(&ref, (DNSServiceFlags)flags, interface_, __VA_ARGS__, context); \
-		if(kDNSServiceErr_NoError == error) return ref; \
+		userdata_t* userdata_ = new userdata_t(callback, userdata); \
+		DNSServiceErrorType error = FUNC(&userdata_->ref, (DNSServiceFlags)flags, interface_, __VA_ARGS__, userdata_); \
+		if(kDNSServiceErr_NoError == error) return userdata_; \
 		set_error(#FUNC##"() failed", error); \
-		delete context; \
+		delete userdata_; \
 		return nullptr; \
 	}
 
 #define FREEPROC(FUNC) \
-	void FUNC(void* context) { DNSServiceRefDeallocate((DNSServiceRef)context); }
-
-	struct context_t
-	{
-		void* callback;
-		void* userdata;
-		context_t(void* callback_, void* userdata_) : callback(callback_), userdata(userdata_) { }
-	};
+	void FUNC(void* userdata) \
+	{  \
+		userdata_t* userdata_ = (userdata_t*)userdata; \
+		DNSServiceRefDeallocate(userdata_->ref); \
+		delete userdata_; \
+	} 
 
 	/* COMMON */
 
 	void* conf0_common_alloc() { return (void*)-1; }
 	void conf0_common_free(void* common_context) { }
 
-	int conf0_iterate(void* context, int timeout)
+	int conf0_iterate(void* userdata, int timeout)
 	{
-		DNSServiceRef ref = (DNSServiceRef)context;
-		int dns_sd_fd  = DNSServiceRefSockFD(ref);
+		userdata_t* userdata_ = (userdata_t*)userdata;
+		int dns_sd_fd  = DNSServiceRefSockFD(userdata_->ref);
 		int nfds = dns_sd_fd + 1;
 		fd_set readfds;
 		FD_ZERO(&readfds);
@@ -107,7 +111,7 @@ void set_error(const char* text, int code)
 		{
 			DNSServiceErrorType error = kDNSServiceErr_NoError;
 			if(FD_ISSET(dns_sd_fd , &readfds)) 
-				error = DNSServiceProcessResult(ref);
+				error = DNSServiceProcessResult(userdata_->ref);
 			if (kDNSServiceErr_NoError == error) 
 				return 1;
 			else
