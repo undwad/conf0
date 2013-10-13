@@ -10,6 +10,11 @@ function port2opaque(port)
 	return byte(bytes, 1) * 256 + byte(bytes, 2)
 end
 
+common = conf0.common()
+common = nil
+
+os.execute('pause')
+
 function conf0.once(func, ...)
 	local args = {...}
 	local client, error, code = func(table.unpack(args))

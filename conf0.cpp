@@ -33,9 +33,17 @@
 
 #include "conf0.h"
 
-static char error[1024] = {0};
-const char* conf0_get_last_error() { return error; }
+static char error_text[1024] = {0};
+int error_code = 0;
 
+const char* conf0_error_text() { return error_text; }
+int conf0_error_code() { return error_code; }
+
+void set_error(const char* text, int code)
+{
+	strcpy(error_text, text);
+	error_code = code;
+}
 
 #if defined(WIN32)
 #	include "dns_sd.h"
@@ -48,7 +56,7 @@ const char* conf0_get_last_error() { return error; }
 #	define CALLBACKBODY(FUNC, CALLBACK, ...) \
 	{ \
 		context_t* context_ = (context_t*)context; \
-		if(kDNSServiceErr_NoError != error) sprintf(::error, #FUNC##"() failed with error %d", error); \
+		if(kDNSServiceErr_NoError != error) set_error(#FUNC##"() failed", error); \
 		((CALLBACK)context_->callback)(ref, flags, interface_, kDNSServiceErr_NoError != error, __VA_ARGS__, context_->userdata); \
 		delete context_; \
 	}
@@ -62,7 +70,7 @@ const char* conf0_get_last_error() { return error; }
 		context_t* context = new context_t(callback, userdata); \
 		DNSServiceErrorType error = FUNC(&ref, (DNSServiceFlags)flags, interface_, __VA_ARGS__, context); \
 		if(kDNSServiceErr_NoError == error) return ref; \
-		sprintf(::error, #FUNC##"() failed with error %d", error); \
+		set_error(#FUNC##"() failed", error); \
 		delete context; \
 		return nullptr; \
 	}
@@ -79,8 +87,42 @@ const char* conf0_get_last_error() { return error; }
 
 	/* COMMON */
 
-	void* conf0_common_alloc() { return nullptr; }
+	void* conf0_common_alloc() { return (void*)-1; }
 	void conf0_common_free(void* common_context) { }
+
+	int conf0_iterate(void* context, int timeout)
+	{
+		DNSServiceRef ref = (DNSServiceRef)context;
+		int dns_sd_fd  = DNSServiceRefSockFD(ref);
+		int nfds = dns_sd_fd + 1;
+		fd_set readfds;
+		FD_ZERO(&readfds);
+		FD_SET(dns_sd_fd , &readfds);
+		timeval tv;
+		tv.tv_sec  = timeout / 1000;
+		tv.tv_usec = (timeout % 1000) * 1000;
+		int result = select(nfds, &readfds, (fd_set*)NULL, (fd_set*)NULL, &tv);
+		if (result > 0)
+		{
+			DNSServiceErrorType error = kDNSServiceErr_NoError;
+			if(FD_ISSET(dns_sd_fd , &readfds)) 
+				error = DNSServiceProcessResult(ref);
+			if (kDNSServiceErr_NoError == error) 
+				return 1;
+			else
+			{
+				set_error("DNSServiceProcessResult() failed", error); 
+				return -1;
+			}
+		}
+		else if(result < 0) //EINTR???
+		{
+			set_error("select() failed", errno); 
+			return -1;
+		}
+		else
+			return 0;
+	}
 
 	/* DOMAIN */
 

@@ -12,12 +12,15 @@
 #	define nullptr NULL
 #endif
 
-const char* conf0_get_last_error();
+const char* conf0_error_text();
+int conf0_error_code();
 
 /* COMMON */
 
 void* conf0_common_alloc();
 void conf0_common_free(void* common_context);
+
+int conf0_iterate(void* context, int timeout);
 
 /* DOMAIN */
 
