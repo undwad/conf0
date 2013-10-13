@@ -130,19 +130,34 @@ static int luaerror(lua_State *L, const char* text, int code)
 		return luaerror(L, name##" failed", error); \
 	}
 
+struct userdata_t
+{
+	lua_State* L;
+	int index;
+
+	userdata_t(lua_State *l, int i) : L(l), index(i) { }
+
+	~userdata_t()
+	{
+		if(LUA_NOREF != index) 
+			luaL_unref(L, LUA_REGISTRYINDEX, index); 
+	}
+};
+
 struct ctx_t
 {
 	void* context;
-	void* callback;
+	userdata_t* userdata;
 };
 
 static int gc(lua_State *L) 
 {
 	luaMandatoryUserDataParam(L, 1, context);
-	ctx_t* ctx = (ctx_t*)context;
 	typedef void (*proc_t)(void* context);
 	proc_t proc = (proc_t)lua_touserdata(L, lua_upvalueindex(1));
+	ctx_t* ctx = (ctx_t*)context;
 	proc(ctx->context);
+	delete ctx->userdata;
 	return 0;
 }
 
@@ -150,13 +165,14 @@ static int gc(lua_State *L)
 	static int name(lua_State *L) \
 	{ 
 
-#define endNewContext(ctor, dctor, callbk, ...) \
+#define endNewContext(ctor, dctor, idx, ...) \
+		userdata_t* userdata = new userdata_t(L, idx); \
 		void* context = ctor(__VA_ARGS__); \
 		if(context) \
 		{ \
-			ctx_t* ctx = (ctx_t*)lua_newuserdata(L, sizeof(ctx_t)); \
+			ctx_t* ctx = (ctx_t*) lua_newuserdata(L, sizeof(ctx_t)); \
 			ctx->context = context; \
-			ctx->callback = callbk; \
+			ctx->userdata = userdata; \
 			lua_newtable(L); \
 			lua_pushlightuserdata(L, dctor); \
 			lua_pushcclosure(L, gc, 1); \
@@ -165,42 +181,47 @@ static int gc(lua_State *L)
 			return 1; \
 		} \
 		else \
+		{ \
+			delete userdata; \
 			return luaerror(L, conf0_error_text(), conf0_error_code()); \
+		} \
 	}
-
-//struct Context
-//{
-//	lua_State *L;
-//	void* client;
-//	int callback;
-//
-//	Context(lua_State *l, int c) : L(l), callback(c), client(nullptr) { }
-//
-//	~Context() 
-//	{
-//		if (LUA_NOREF != callback) 
-//			luaL_unref(L, LUA_REGISTRYINDEX, callback); 
-//		if(client)
-//			DNSServiceRefDeallocate(client);
-//	}
-//};
-
 
 /* COMMON */
 
 beginNewContext(common)
-endNewContext(conf0_common_alloc, conf0_common_free, nullptr)
+endNewContext(conf0_common_alloc, conf0_common_free, LUA_NOREF)
 
 /* DOMAIN */
 
-typedef void enumdomain_callback(void* enumdomain_context, unsigned int flags, unsigned int interface_, bool error, const char* domain, void* userdata);
+void enumdomain_callback(void* enumdomain_context, unsigned int flags, unsigned int interface_, bool error, const char* domain, void* userdata)
+{
+	//Context* ctx = (Context*)context; 
+	//lua_State *L = ctx->L; 
+	//lua_rawgeti(L, LUA_REGISTRYINDEX, ctx->callback); 
+	//lua_newtable(L); 
+
+	//if(lua_pcall(L, 1, 0, 0)) 
+	//{ 
+	//	fprintf(stderr, name##" callback error %s\n", lua_tostring(L, -1)); 
+	//	lua_pop(L, 1); 
+	//}	
+	//beginReplyCallback();
+	//luaSetUnsignedField(L, -2, "flags", flags);
+	//luaSetUnsignedField(L, -2, "interface", _interface);
+	//luaSetIntegerField(L, -2, "error", error);
+	//luaSetStringField(L, -2, "name", name);
+	//luaSetStringField(L, -2, "type", type);
+	//luaSetStringField(L, -2, "domain", domain);
+	//endReplyCallback("browse reply");
+}
 
 //beginNewContext(enumdomain)
 //	luaMandatoryUserDataParam(L, 1, common_context);
 //	luaOptionalUnsignedParam(L, 2, _interface, 0)
 //	luaOptionalUnsignedParam(L, 3, flags, 0)
 //	luaMandatoryCallbackParam(L, 4, callback)
-//endNewContext(conf0_enumdomain_alloc, conf0_enumdomain_free, common_context, _interface, flags, enumdomain_callback, )
+//endNewContext(conf0_enumdomain_alloc, conf0_enumdomain_free, callback, *(void**)common_context, _interface, flags, enumdomain_callback, (void*)callback)
 
 /* BROWSER */
 
