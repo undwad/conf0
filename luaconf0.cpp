@@ -88,7 +88,7 @@ static int luaerror(lua_State *L, const char* text, int code)
 #define luaMandatoryCallbackParam(L, index, name) \
 	if(!lua_isfunction(L, index)) return luaerror(L, "parameter "#name##" must be a valid function", index); \
 	lua_pushvalue(L, index); \
-	Context* name = new Context(L, luaL_ref(L, LUA_REGISTRYINDEX));
+	int name = luaL_ref(L, LUA_REGISTRYINDEX);
 
 #define luaOptionalParam(L, index, type, name, value, isproc, toproc) \
 	type name = value; \
@@ -130,12 +130,19 @@ static int luaerror(lua_State *L, const char* text, int code)
 		return luaerror(L, name##" failed", error); \
 	}
 
+struct ctx_t
+{
+	void* context;
+	void* callback;
+};
+
 static int gc(lua_State *L) 
 {
 	luaMandatoryUserDataParam(L, 1, context);
+	ctx_t* ctx = (ctx_t*)context;
 	typedef void (*proc_t)(void* context);
 	proc_t proc = (proc_t)lua_touserdata(L, lua_upvalueindex(1));
-	proc(*(void**)context);
+	proc(ctx->context);
 	return 0;
 }
 
@@ -143,11 +150,13 @@ static int gc(lua_State *L)
 	static int name(lua_State *L) \
 	{ 
 
-#define endNewContext(ctor, dctor, ...) \
+#define endNewContext(ctor, dctor, callbk, ...) \
 		void* context = ctor(__VA_ARGS__); \
 		if(context) \
 		{ \
-			*(void**)lua_newuserdata(L, sizeof(context)) = context; \
+			ctx_t* ctx = (ctx_t*)lua_newuserdata(L, sizeof(ctx_t)); \
+			ctx->context = context; \
+			ctx->callback = callbk; \
 			lua_newtable(L); \
 			lua_pushlightuserdata(L, dctor); \
 			lua_pushcclosure(L, gc, 1); \
@@ -180,10 +189,18 @@ static int gc(lua_State *L)
 /* COMMON */
 
 beginNewContext(common)
-endNewContext(conf0_common_alloc, conf0_common_free)
-
+endNewContext(conf0_common_alloc, conf0_common_free, nullptr)
 
 /* DOMAIN */
+
+typedef void enumdomain_callback(void* enumdomain_context, unsigned int flags, unsigned int interface_, bool error, const char* domain, void* userdata);
+
+//beginNewContext(enumdomain)
+//	luaMandatoryUserDataParam(L, 1, common_context);
+//	luaOptionalUnsignedParam(L, 2, _interface, 0)
+//	luaOptionalUnsignedParam(L, 3, flags, 0)
+//	luaMandatoryCallbackParam(L, 4, callback)
+//endNewContext(conf0_enumdomain_alloc, conf0_enumdomain_free, common_context, _interface, flags, enumdomain_callback, )
 
 /* BROWSER */
 

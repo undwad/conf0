@@ -87,8 +87,8 @@ void set_error(const char* text, int code)
 
 	/* COMMON */
 
-	void* conf0_common_alloc() { return (void*)-1; }
-	void conf0_common_free(void* common_context) { }
+	void* conf0_common_alloc() { printf("alloc\n"); return (void*)-1; }
+	void conf0_common_free(void* common_context) { printf("free %d\n", common_context); }
 
 	int conf0_iterate(void* context, int timeout)
 	{
