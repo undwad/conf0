@@ -42,6 +42,9 @@ const char* conf0_get_last_error() { return error; }
 #	pragma comment(lib, "dnssd.lib")
 #	pragma comment(lib, "ws2_32.lib")
 
+#	define CALLBACKDEF(CALLBACK, ...) \
+	void DNSSD_API CALLBACK(DNSServiceRef ref, DNSServiceFlags flags, uint32_t interface_, DNSServiceErrorType error, __VA_ARGS__, void *context)
+
 #	define CALLBACKBODY(FUNC, CALLBACK, ...) \
 	{ \
 		context_t* context_ = (context_t*)context; \
@@ -50,6 +53,8 @@ const char* conf0_get_last_error() { return error; }
 		delete context_; \
 	}
 
+#	define FUNCDEF(FUNC, CALLBACK, ...) \
+	void* conf0_enumdomain_alloc(void* common_context, unsigned int flags, unsigned int interface_, __VA_ARGS__, conf0_enumdomain_callback callback, void* userdata)
 
 #	define FUNCBODY(FUNC, ...) \
 	{ \
@@ -61,6 +66,9 @@ const char* conf0_get_last_error() { return error; }
 		delete context; \
 		return nullptr; \
 	}
+
+#define FREEPROC(FUNC) \
+	void FUNC(void* context) { DNSServiceRefDeallocate((DNSServiceRef)context); }
 
 	struct context_t
 	{
@@ -76,27 +84,27 @@ const char* conf0_get_last_error() { return error; }
 
 	/* DOMAIN */
 
-	void DNSSD_API enumdomain_callback(DNSServiceRef ref, DNSServiceFlags flags, uint32_t interface_, DNSServiceErrorType error, const char *domain, void *context)
+	CALLBACKDEF(enumdomain_callback, const char *domain)
 		CALLBACKBODY(DNSServiceEnumerateDomains, conf0_enumdomain_callback, domain)
-	void* conf0_enumdomain_alloc(void* common_context, unsigned int flags, unsigned int interface_, conf0_enumdomain_callback callback, void* userdata)
+	FUNCDEF(conf0_enumdomain_alloc, conf0_enumdomain_callback)
 		FUNCBODY(DNSServiceEnumerateDomains, enumdomain_callback)
-	void conf0_enumdomain_free(void* enumdomain_context) { DNSServiceRefDeallocate((DNSServiceRef)enumdomain_context); }
+	FREEPROC(conf0_enumdomain_free)
 
 	/* BROWSER */
 
-	void DNSSD_API browser_callback(DNSServiceRef ref, DNSServiceFlags flags, uint32_t interface_, DNSServiceErrorType error, const char* name, const char* type, const char* domain, void* context)
+	CALLBACKDEF(browser_callback, const char* name, const char* type, const char* domain)
 		CALLBACKBODY(DNSServiceBrowse, conf0_browser_callback, name, type, domain)
-	void* conf0_browser_alloc(void* common_context, unsigned int flags, unsigned int interface_, const char* type, const char* domain, conf0_browser_callback callback, void* userdata)
+	FUNCDEF(conf0_browser_alloc, conf0_browser_callback, const char* type, const char* domain)
 		FUNCBODY(DNSServiceBrowse, type, domain, browser_callback)
-	void conf0_browser_free(void* browser_context) { DNSServiceRefDeallocate((DNSServiceRef)browser_context); }
+	FREEPROC(conf0_browser_free)
 
 	/* RESOLVER */
 
-	void DNSSD_API resolver_callback(DNSServiceRef ref, DNSServiceFlags flags, uint32_t interface_, DNSServiceErrorType error, const char* fullname, const char* hosttarget, uint16_t port, uint16_t textlen, const unsigned char* text, void* context)
+	CALLBACKDEF(resolver_callback, const char* fullname, const char* hosttarget, uint16_t port, uint16_t textlen, const unsigned char* text)
 		CALLBACKBODY(DNSServiceResolve, conf0_resolver_callback, fullname, hosttarget, port, textlen, text)
-	void* conf0_resolver_alloc(void* common_context, unsigned int flags, unsigned int interface_, const char* name, const char* type, const char* domain, conf0_resolver_callback callback, void* userdata)
+	FUNCDEF(conf0_resolver_alloc, conf0_resolver_callback, const char* name, const char* type, const char* domain)
 		FUNCBODY(DNSServiceResolve, name, type, domain, resolver_callback)
-	void conf0_resolver_free(void* resolver_context) { DNSServiceRefDeallocate((DNSServiceRef)resolver_context); }
+	FREEPROC(conf0_resolver_free)
 
 	/* QUERY */
 
