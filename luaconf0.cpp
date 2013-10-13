@@ -61,15 +61,15 @@ static int luaerror(lua_State *L, const char* text, int code)
 	return 3;
 }
 
-#define luaSetField(L, index, name, value, proc) proc(L, value); lua_setfield(L, index, name)
-#define luaSetBooleanField(L, index, name, value) luaSetField(L, index, name, value, lua_pushboolean)
-#define luaSetNumberField(L, index, name, value) luaSetField(L, index, name, value, lua_pushnumber)
-#define luaSetIntegerField(L, index, name, value) luaSetField(L, index, name, value, lua_pushinteger)
-#define luaSetUnsignedField(L, index, name, value) luaSetField(L, index, name, value, lua_pushunsigned)
-#define luaSetStringField(L, index, name, value) luaSetField(L, index, name, value, lua_pushstring)
-#define luaSetCFunctionField(L, index, name, value) luaSetField(L, index, name, value, lua_pushcfunction)
-#define luaSetUserDataField(L, index, name, value) luaSetField(L, index, name, value, lua_pushlightuserdata)
-#define luaSetLStringField(L, index, name, value, len) lua_pushlstring(L, (const char*)value, len); lua_setfield(L, index, name)
+#define luaSetField(L, index, name, value, proc) proc(L, value); lua_setfield(L, index, name);
+#define luaSetBooleanField(L, index, name, value) luaSetField(L, index, name, value, lua_pushboolean);
+#define luaSetNumberField(L, index, name, value) luaSetField(L, index, name, value, lua_pushnumber);
+#define luaSetIntegerField(L, index, name, value) luaSetField(L, index, name, value, lua_pushinteger);
+#define luaSetUnsignedField(L, index, name, value) luaSetField(L, index, name, value, lua_pushunsigned);
+#define luaSetStringField(L, index, name, value) luaSetField(L, index, name, value, lua_pushstring);
+#define luaSetCFunctionField(L, index, name, value) luaSetField(L, index, name, value, lua_pushcfunction);
+#define luaSetUserDataField(L, index, name, value) luaSetField(L, index, name, value, lua_pushlightuserdata);
+#define luaSetLStringField(L, index, name, value, len) lua_pushlstring(L, (const char*)value, len); lua_setfield(L, index, name);
 
 #define luaParam(L, index, type, name, isproc, toproc) \
 	if(!isproc(L, index)) return luaerror(L, "parameter "#name##" must be a valid "#type, index); \
@@ -103,32 +103,6 @@ static int luaerror(lua_State *L, const char* text, int code)
 #define luaOptionalUnsignedParam(L, index, name, value) luaOptionalParam(L, index, unsigned int, name, value, lua_isnumber, lua_tounsigned)
 #define luaOptionalStringParam(L, index, name, value) luaOptionalParam(L, index, const char*, name, value, lua_isstring, lua_tostring)
 #define luaOptionalUserDataParam(L, index, name, value) luaOptionalParam(L, index, void*, name, value, lua_isuserdata, lua_touserdata)
-
-#define beginReplyCallback() \
-	Context* ctx = (Context*)context; \
-	lua_State *L = ctx->L; \
-	lua_rawgeti(L, LUA_REGISTRYINDEX, ctx->callback); \
-	lua_newtable(L); 
-
-#define endReplyCallback(name) \
-	if(lua_pcall(L, 1, 0, 0)) \
-	{ \
-		fprintf(stderr, name##" callback error %s\n", lua_tostring(L, -1)); \
-		lua_pop(L, 1); \
-	}	
-
-
-#define returnContext(name) \
-	if(kDNSServiceErr_NoError == error) \
-	{ \
-		lua_pushlightuserdata(L, ctx); \
-		return 1; \
-	} \
-	else \
-	{ \
-		delete ctx; \
-		return luaerror(L, name##" failed", error); \
-	}
 
 struct userdata_t
 {
@@ -187,6 +161,31 @@ static int gc(lua_State *L)
 		} \
 	}
 
+#define beginReplyCallback(name, ...) \
+	void name(void* enumdomain_context, unsigned int flags, unsigned int interface_, bool error, __VA_ARGS__, void* userdata) \
+	{ \
+		userdata_t* userdata_ = (userdata_t*)userdata; \
+		lua_State *L = userdata_->L; \
+		lua_rawgeti(L, LUA_REGISTRYINDEX, userdata_->index); \
+		lua_newtable(L); \
+		luaSetUnsignedField(L, -2, "flags", flags); \
+		luaSetUnsignedField(L, -2, "interface", interface_); \
+		if(error) \
+		{ \
+			lua_newtable(L); \
+			luaSetStringField(L, -2, "text", conf0_error_text()); \
+			luaSetIntegerField(L, -2, "code", conf0_error_code()); \
+			lua_setfield(L, -2, "error"); \
+		} \
+
+#define endReplyCallback(name) \
+		if(lua_pcall(L, 1, 0, 0)) \
+		{ \
+			fprintf(stderr, #name##" callback error %s\n", lua_tostring(L, -1)); \
+			lua_pop(L, 1); \
+		}	\
+	}
+
 /* COMMON */
 
 beginNewContext(common)
@@ -194,22 +193,9 @@ endNewContext(conf0_common_alloc, conf0_common_free, LUA_NOREF)
 
 /* DOMAIN */
 
-void enumdomain_callback(void* enumdomain_context, unsigned int flags, unsigned int interface_, bool error, const char* domain, void* userdata)
-{
-	userdata_t* userdata_ = (userdata_t*)userdata;
-	lua_State *L = userdata_->L; 
-	lua_rawgeti(L, LUA_REGISTRYINDEX, userdata_->index); 
-	lua_newtable(L); 
-	luaSetUnsignedField(L, -2, "flags", flags);
-	luaSetUnsignedField(L, -2, "interface", interface_);
-	luaSetStringField(L, -2, "domain", domain);
-
-	if(lua_pcall(L, 1, 0, 0)) 
-	{ 
-		fprintf(stderr, "enumdomain callback error %s\n", lua_tostring(L, -1)); 
-		lua_pop(L, 1); 
-	}	
-}
+beginReplyCallback(enumdomain_callback, const char* domain)
+	luaSetStringField(L, -2, "domain", domain)
+endReplyCallback(enumdomain_callback)
 
 beginNewContext(enumdomain)
 	luaMandatoryUserDataParam(L, 1, common_context);
