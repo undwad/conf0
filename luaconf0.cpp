@@ -196,32 +196,27 @@ endNewContext(conf0_common_alloc, conf0_common_free, LUA_NOREF)
 
 void enumdomain_callback(void* enumdomain_context, unsigned int flags, unsigned int interface_, bool error, const char* domain, void* userdata)
 {
-	//Context* ctx = (Context*)context; 
-	//lua_State *L = ctx->L; 
-	//lua_rawgeti(L, LUA_REGISTRYINDEX, ctx->callback); 
-	//lua_newtable(L); 
+	userdata_t* userdata_ = (userdata_t*)userdata;
+	lua_State *L = userdata_->L; 
+	lua_rawgeti(L, LUA_REGISTRYINDEX, userdata_->index); 
+	lua_newtable(L); 
+	luaSetUnsignedField(L, -2, "flags", flags);
+	luaSetUnsignedField(L, -2, "interface", interface_);
+	luaSetStringField(L, -2, "domain", domain);
 
-	//if(lua_pcall(L, 1, 0, 0)) 
-	//{ 
-	//	fprintf(stderr, name##" callback error %s\n", lua_tostring(L, -1)); 
-	//	lua_pop(L, 1); 
-	//}	
-	//beginReplyCallback();
-	//luaSetUnsignedField(L, -2, "flags", flags);
-	//luaSetUnsignedField(L, -2, "interface", _interface);
-	//luaSetIntegerField(L, -2, "error", error);
-	//luaSetStringField(L, -2, "name", name);
-	//luaSetStringField(L, -2, "type", type);
-	//luaSetStringField(L, -2, "domain", domain);
-	//endReplyCallback("browse reply");
+	if(lua_pcall(L, 1, 0, 0)) 
+	{ 
+		fprintf(stderr, "enumdomain callback error %s\n", lua_tostring(L, -1)); 
+		lua_pop(L, 1); 
+	}	
 }
 
-//beginNewContext(enumdomain)
-//	luaMandatoryUserDataParam(L, 1, common_context);
-//	luaOptionalUnsignedParam(L, 2, _interface, 0)
-//	luaOptionalUnsignedParam(L, 3, flags, 0)
-//	luaMandatoryCallbackParam(L, 4, callback)
-//endNewContext(conf0_enumdomain_alloc, conf0_enumdomain_free, callback, *(void**)common_context, _interface, flags, enumdomain_callback, (void*)callback)
+beginNewContext(enumdomain)
+	luaMandatoryUserDataParam(L, 1, common_context);
+	luaOptionalUnsignedParam(L, 2, flags, 0)
+	luaOptionalUnsignedParam(L, 3, _interface, 0)
+	luaMandatoryCallbackParam(L, 4, callback)
+	endNewContext(conf0_enumdomain_alloc, conf0_enumdomain_free, callback, ((ctx_t*)common_context)->context, flags, _interface, enumdomain_callback, userdata)
 
 /* BROWSER */
 
@@ -330,40 +325,23 @@ void enumdomain_callback(void* enumdomain_context, unsigned int flags, unsigned 
 //	returnContext("register request");
 //	return 0;
 //}
-//
-//static int handle(lua_State *L) 
-//{
-//	luaMandatoryUserDataParam(L, 1, context);
-//	luaOptionalUnsignedParam(L, 2, timeout, 5000);
-//	Context* ctx = (Context*)context;
-//	int dns_sd_fd  = DNSServiceRefSockFD(ctx->client);
-//	int nfds = dns_sd_fd + 1;
-//	fd_set readfds;
-//	FD_ZERO(&readfds);
-//	FD_SET(dns_sd_fd , &readfds);
-//	timeval tv;
-//	tv.tv_sec  = timeout / 1000;
-//	tv.tv_usec = (timeout % 1000) * 1000;
-//	int result = select(nfds, &readfds, (fd_set*)NULL, (fd_set*)NULL, &tv);
-//	if (result > 0)
-//	{
-//		DNSServiceErrorType error = kDNSServiceErr_NoError;
-//		if(FD_ISSET(dns_sd_fd , &readfds)) 
-//			error = DNSServiceProcessResult(ctx->client);
-//		if (kDNSServiceErr_NoError != error) 
-//			return luaerror(L, "DNSServiceProcessResult() failed", errno);
-//	}
-//	else if(result < 0) //EINTR???
-//		return luaerror(L, "select() failed", errno);
-//	else
-//	{
-//		lua_pushboolean(L, false);
-//		return 1;
-//	}
-//	lua_pushboolean(L, true);
-//	return 1;
-//}
-//
+
+static int iterate(lua_State *L) 
+{
+	luaMandatoryUserDataParam(L, 1, context);
+	luaOptionalUnsignedParam(L, 2, timeout, 5000);
+	int result = conf0_iterate(((ctx_t*)context)->context, timeout);
+	if(result < 0)
+		return luaerror(L, conf0_error_text(), conf0_error_code());
+	else if(result > 0)
+	{
+		lua_pushboolean(L, true);
+		return 1;
+	}
+	lua_pushboolean(L, false);
+	return 1;
+}
+
 //static int stop(lua_State *L) 
 //{
 //	luaMandatoryUserDataParam(L, 1, context);
@@ -376,12 +354,12 @@ static const struct luaL_Reg lib[] =
 {
 	{"bytes", bytes},
 	{"common", common},
+	{"enumdomain", enumdomain},
 	//{"browse", browse},
 	//{"resolve", resolve},
 	//{"query", query},
 	//{"register", _register},
-	//{"handle", handle},
-	//{"stop", stop},
+	{"iterate", iterate},
     {nullptr, nullptr},
 };
 

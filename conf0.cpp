@@ -62,7 +62,7 @@ void set_error(const char* text, int code)
 	}
 
 #	define FUNCDEF(FUNC, CALLBACK, ...) \
-	void* conf0_enumdomain_alloc(void* common_context, unsigned int flags, unsigned int interface_, __VA_ARGS__, conf0_enumdomain_callback callback, void* userdata)
+	void* FUNC(void* common_context, unsigned int flags, unsigned int interface_, __VA_ARGS__, CALLBACK callback, void* userdata)
 
 #	define FUNCBODY(FUNC, ...) \
 	{ \

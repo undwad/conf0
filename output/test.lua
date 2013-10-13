@@ -10,18 +10,12 @@ function port2opaque(port)
 	return byte(bytes, 1) * 256 + byte(bytes, 2)
 end
 
-common = conf0.common()
-common = nil
-
-os.execute('pause')
-
 function conf0.once(func, ...)
 	local args = {...}
 	local client, error, code = func(table.unpack(args))
 	if client then
-		local result, error, code = conf0.handle(client)
+		local result, error, code = conf0.iterate(client)
 		if nil == result then print(error, code) end
-		conf0.stop(client)
 	else print(error, code)	end
 end
 
@@ -31,15 +25,22 @@ function conf0.wait(func, ...)
 	if client then
 		local handle = true
 		while handle do
-			local handle, error, code = conf0.handle(client)
+			local handle, error, code = conf0.iterate(client)
 			if not handle then
 				if nil == handle then print(error, code) end
 				break
 			end
 		end
-		conf0.stop(client)
 	else print(error, code)	end
 end
+
+common = conf0.common()
+
+conf0.once(conf0.enumdomain, common, 0x40, 0, function(res) 
+	print(res)
+end) 
+
+os.execute('pause')
 
 local me, error, code = conf0.register("_http._tcp", function(res) print(prettytostring(res)) end, 'conf0test', nil, port2opaque(5500))
 if me then conf0.handle(me) else print(error, code) end
