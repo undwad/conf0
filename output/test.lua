@@ -54,10 +54,8 @@ conf0.wait(conf0.browse, common, function(item)
 			item.ip = inet_ntoa(res.data)
 		end) 
 	end) 
-end, "_http._tcp", "local.")
+end, "_rtsp._tcp", "local.") --_http._tcp
 
 print(prettytostring(items))
 
 os.execute('pause')
-
-conf0.stop(me)

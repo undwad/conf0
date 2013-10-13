@@ -262,18 +262,6 @@ endNewContext(conf0_query_alloc, conf0_query_free, callback, ((ctx_t*)common_con
 
 
 //
-//static int query(lua_State *L) 
-//{
-//	luaMandatoryStringParam(L, 1, fullname);
-//	luaMandatoryUnsignedParam(L, 2, recordtype);
-//	luaMandatoryCallbackParam(L, 3, ctx);
-//	luaOptionalUnsignedParam(L, 4, _interface, 0);
-//	luaOptionalUnsignedParam(L, 5, flags, 0);
-//	luaOptionalUnsignedParam(L, 6, recordclass, kDNSServiceClass_IN);
-//	int error = DNSServiceQueryRecord(&ctx->client, flags, _interface, fullname, recordtype, recordclass, queryReply, ctx);
-//	returnContext("query request");
-//}
-//
 //static void DNSSD_API registerReply(DNSServiceRef client, DNSServiceFlags flags, DNSServiceErrorType error, const char* name, const char* type, const char* domain, void* context)
 //{
 //	beginReplyCallback();
