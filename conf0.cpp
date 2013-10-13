@@ -57,6 +57,7 @@ void set_error(const char* text, int code)
 	{ \
 		context_t* context_ = (context_t*)context; \
 		if(kDNSServiceErr_NoError != error) set_error(#FUNC##"() failed", error); \
+		printf("%d %d\n", context_->callback, context_->userdata); \
 		((CALLBACK)context_->callback)(ref, flags, interface_, kDNSServiceErr_NoError != error, __VA_ARGS__, context_->userdata); \
 		delete context_; \
 	}

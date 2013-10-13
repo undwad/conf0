@@ -162,7 +162,7 @@ static int gc(lua_State *L)
 	}
 
 #define beginReplyCallback(name, ...) \
-	void name(void* enumdomain_context, unsigned int flags, unsigned int interface_, bool error, __VA_ARGS__, void* userdata) \
+	void name(void* context, unsigned int flags, unsigned int interface_, bool error, __VA_ARGS__, void* userdata) \
 	{ \
 		userdata_t* userdata_ = (userdata_t*)userdata; \
 		lua_State *L = userdata_->L; \
@@ -198,13 +198,29 @@ beginReplyCallback(enumdomain_callback, const char* domain)
 endReplyCallback(enumdomain_callback)
 
 beginNewContext(enumdomain)
-	luaMandatoryUserDataParam(L, 1, common_context);
-	luaOptionalUnsignedParam(L, 2, flags, 0)
-	luaOptionalUnsignedParam(L, 3, _interface, 0)
-	luaMandatoryCallbackParam(L, 4, callback)
-	endNewContext(conf0_enumdomain_alloc, conf0_enumdomain_free, callback, ((ctx_t*)common_context)->context, flags, _interface, enumdomain_callback, userdata)
+	luaMandatoryUserDataParam(L, 1, common_context)
+	luaMandatoryCallbackParam(L, 2, callback) 
+	luaOptionalUnsignedParam(L, 3, flags, 0x40) 
+	luaOptionalUnsignedParam(L, 4, _interface, 0) 
+endNewContext(conf0_enumdomain_alloc, conf0_enumdomain_free, callback, ((ctx_t*)common_context)->context, flags, _interface, enumdomain_callback, userdata)
 
 /* BROWSER */
+
+beginReplyCallback(browser_callback, const char* name, const char* type, const char* domain)
+	luaSetStringField(L, -2, "name", name);
+	luaSetStringField(L, -2, "type", type);
+	luaSetStringField(L, -2, "domain", domain)
+endReplyCallback(browser_callback)
+
+beginNewContext(browse, const char* type, const char* domain)
+	luaMandatoryUserDataParam(L, 1, common_context)
+	luaMandatoryCallbackParam(L, 2, callback) 
+	luaOptionalStringParam(L, 3, type, "");
+	luaOptionalStringParam(L, 4, domain, "");
+	luaOptionalUnsignedParam(L, 5, flags, 0) 
+	luaOptionalUnsignedParam(L, 6, _interface, 0) 
+endNewContext(conf0_browser_alloc, conf0_browser_free, callback, ((ctx_t*)common_context)->context, flags, _interface, type, domain, browser_callback, userdata)
+
 
 /* RESOLVER */
 
@@ -328,20 +344,12 @@ static int iterate(lua_State *L)
 	return 1;
 }
 
-//static int stop(lua_State *L) 
-//{
-//	luaMandatoryUserDataParam(L, 1, context);
-//	delete (Context*)context;
-//	lua_pushboolean(L, true);
-//	return 1;
-//}
-
 static const struct luaL_Reg lib[] = 
 {
 	{"bytes", bytes},
 	{"common", common},
 	{"enumdomain", enumdomain},
-	//{"browse", browse},
+	{"browse", browse},
 	//{"resolve", resolve},
 	//{"query", query},
 	//{"register", _register},
