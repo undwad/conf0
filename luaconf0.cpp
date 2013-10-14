@@ -12,7 +12,6 @@
 #include "lua.hpp"
 
 #include "conf0.h"
-#include "luaconf0.h"
 
 #if LUA_VERSION_NUM < 502
 #  define luaL_newlib(L,l) (lua_newtable(L), luaL_register(L,NULL,l))
@@ -294,9 +293,15 @@ static const struct luaL_Reg lib[] =
     {nullptr, nullptr},
 };
 
-int luaopen_conf0(lua_State *L) 
+extern "C"
+{
+
+LUAMOD_API int luaopen_conf0(lua_State *L) 
 {
     luaL_newlib (L, lib);
     lua_setglobal(L, "conf0");
 	return 1;
 }
+
+}
+
