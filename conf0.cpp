@@ -5,7 +5,7 @@
 ** see copyright notice in conf0.h
 */
 
-#if defined( __SYMBIAN32__ ) 
+#if defined( __SYMBIAN32__ )
 #	define SYMBIAN
 #elif defined( __WIN32__ ) || defined( _WIN32 ) || defined( WIN32 )
 #	ifndef WIN32
@@ -21,7 +21,7 @@
 #	define TEGRA2
 #elif defined(__ANDROID__)
 #	define ANDROID
-#elif defined( __native_client__ ) 
+#elif defined( __native_client__ )
 #	define NATIVECLIENT
 #else
 #	define LINUX
@@ -113,7 +113,7 @@ void set_error(const char* text, int code)
 			if(FD_ISSET(dns_sd_fd , &readfds))
 				error = DNSServiceProcessResult(userdata_->ref);
 			if (kDNSServiceErr_NoError == error)
-				return 1;
+				return 0;
 			else
 			{
 				set_error("DNSServiceProcessResult() failed", error);
@@ -126,7 +126,7 @@ void set_error(const char* text, int code)
 			return -1;
 		}
 		else
-			return 0;
+			return 1;
 	}
 
 	/* DOMAIN */
@@ -202,6 +202,8 @@ void set_error(const char* text, int code)
         AvahiClient* client;
 	};
 
+    static void client_callback(AvahiClient* client, AvahiClientState state, AVAHI_GCC_UNUSED void* userdata) { }
+
 	void* conf0_common_alloc()
 	{
         common_t* common = new common_t;
@@ -209,7 +211,13 @@ void set_error(const char* text, int code)
         {
             if(common->poll = avahi_simple_poll_new())
             {
+                int error;
+                if(common->client = avahi_client_new(avahi_simple_poll_get(common->poll), 0, client_callback, nullptr, &error))
+                    return common;
+                else set_error(avahi_strerror(error), error);
+                avahi_simple_poll_free(common->poll);
             }
+            else set_error("avahi_simple_poll_new() failed", 0);
             delete common;
         }
         return nullptr;
@@ -217,11 +225,15 @@ void set_error(const char* text, int code)
 
 	void conf0_common_free(void* common_context)
 	{
+        common_t* common = (common_t*)common_context;
+        avahi_client_free(common->client);
+        avahi_simple_poll_free(common->poll);
+        delete common;
 	}
 
 	int conf0_iterate(void* userdata, int timeout)
 	{
-
+        //int result =
 	}
 
 	/* DOMAIN */

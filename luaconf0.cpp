@@ -272,11 +272,9 @@ static int iterate(lua_State *L)
 	if(result < 0)
 		return luaerror(L, conf0_error_text(), conf0_error_code());
 	else if(result > 0)
-	{
+		lua_pushboolean(L, false);
+	else
 		lua_pushboolean(L, true);
-		return 1;
-	}
-	lua_pushboolean(L, false);
 	return 1;
 }
 
