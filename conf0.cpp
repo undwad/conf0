@@ -169,7 +169,7 @@ void set_error(const char* text, int code)
 	ENDCALLBACK(DNSServiceQueryRecord, conf0_query_callback, fullname, type, class_, datalen, data, ttl)
 
 	BEGINFUNC(conf0_query_alloc, conf0_query_callback, const char* fullname, unsigned short type, unsigned short class_)
-	ENDFUNC(DNSServiceQueryRecord, fullname, type, class_, query_callback) //class = kDNSServiceClass_IN
+	ENDFUNC(DNSServiceQueryRecord, fullname, type, class_, query_callback)
 
 	FREEPROC(conf0_query_free)
 
@@ -193,6 +193,48 @@ void set_error(const char* text, int code)
 #   include <avahi-common/simple-watch.h>
 #   include <avahi-common/malloc.h>
 #   include <avahi-common/error.h>
+
+#	define BEGINCALLBACK(CALLBACK, ...) \
+    void enumdomain_callback(AvahiDomainBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, __VA_ARGS__, AvahiLookupResultFlags flags, void *userdata) \
+	{
+
+#	define ENDCALLBACK(TYPE, ...) \
+        TYPE* context = (TYPE*)userdata; \
+        if(AVAHI_BROWSER_FAILURE == event) \
+        { \
+            int error = avahi_client_errno(context->client); \
+            set_error(avahi_strerror(error), error); \
+        } \
+        context->callback(context, flags, interface, AVAHI_BROWSER_FAILURE == event, __VA_ARGS__, context->userdata); \
+    }
+
+#	define BEGINFUNC(FUNC, CALLBACK, ...) \
+	void* FUNC(void* common_context, unsigned int flags, __VA_ARGS__, CALLBACK callback, void* userdata) \
+	{
+
+#	define ENDFUNC(TYPE, FUNC, CALLBACK, ...) \
+        common_t* common = (common_t*)common_context; \
+        TYPE* context = new TYPE; \
+        context->poll = common->poll; \
+        context->client = common->client; \
+        context->callback = callback; \
+        context->userdata = userdata; \
+        if(context->handle = FUNC(common->client, interface_, AVAHI_PROTO_UNSPEC, __VA_ARGS__, 0, CALLBACK, context)) \
+            return context; \
+        int error = avahi_client_errno(common->client); \
+        set_error(avahi_strerror(error), error); \
+        delete context; \
+        return nullptr; \
+	}
+
+
+#   define FREEPROC(FUNC, TYPE, PROC) \
+	void FUNC(void* context) \
+	{  \
+		TYPE* context_ = (TYPE*)context; \
+		PROC(context_->handle); \
+		delete context_; \
+	}
 
 	/* COMMON */
 
@@ -233,14 +275,44 @@ void set_error(const char* text, int code)
 
 	int conf0_iterate(void* userdata, int timeout)
 	{
-        //int result =
+        common_t* common = (common_t*)userdata;
+        int result = avahi_simple_poll_iterate(common->poll, timeout);
+        if(result < 0)
+        {
+            int error = avahi_client_errno(common->client);
+            set_error(avahi_strerror(error), error);
+        }
+        return result;
 	}
 
 	/* DOMAIN */
 	extern const int browser_browse = AVAHI_DOMAIN_BROWSER_BROWSE;
 
-	void* conf0_enumdomain_alloc(void* common_context, unsigned int flags, unsigned int interface_, conf0_enumdomain_callback callback, void* userdata) { return nullptr; }
-    void conf0_enumdomain_free(void* enumdomain_context) {}
+    struct enumdomain_t : common_t
+    {
+        AvahiDomainBrowser* handle;
+        conf0_enumdomain_callback callback;
+        void* userdata;
+    };
+
+    BEGINCALLBACK(enumdomain_callback, const char *domain)
+    ENDCALLBACK(enumdomain_t, domain)
+
+    //void enumdomain_callback(AvahiDomainBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, const char *domain, AvahiLookupResultFlags flags, void *userdata)
+    //{
+    //    enumdomain_t* context = (enumdomain_t*)userdata;
+    //    if(AVAHI_BROWSER_FAILURE == event)
+    //    {
+    //        int error = avahi_client_errno(context->client);
+    //        set_error(avahi_strerror(error), error);
+    //    }
+    //    context->callback(context, flags, interface, AVAHI_BROWSER_FAILURE == event, domain, context->userdata);
+    //}
+
+    BEGINFUNC(conf0_enumdomain_alloc, conf0_enumdomain_callback, unsigned int interface_)
+    ENDFUNC(enumdomain_t, avahi_domain_browser_new, enumdomain_callback, nullptr, flags)
+
+    FREEPROC(conf0_enumdomain_free, enumdomain_t, avahi_domain_browser_free)
 
 	/* BROWSER */
 
