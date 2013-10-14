@@ -195,7 +195,7 @@ void set_error(const char* text, int code)
 #   include <avahi-common/error.h>
 
 #	define BEGINCALLBACK(CALLBACK, ...) \
-    void enumdomain_callback(AvahiDomainBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, __VA_ARGS__, AvahiLookupResultFlags flags, void *userdata) \
+    void CALLBACK(AvahiDomainBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, __VA_ARGS__, AvahiLookupResultFlags flags, void *userdata) \
 	{
 
 #	define ENDCALLBACK(TYPE, ...) \
@@ -205,7 +205,8 @@ void set_error(const char* text, int code)
             int error = avahi_client_errno(context->client); \
             set_error(avahi_strerror(error), error); \
         } \
-        context->callback(context, flags, interface, AVAHI_BROWSER_FAILURE == event, __VA_ARGS__, context->userdata); \
+        else if(AVAHI_BROWSER_NEW == event) \
+            context->callback(context, flags, interface, AVAHI_BROWSER_FAILURE == event, __VA_ARGS__, context->userdata); \
     }
 
 #	define BEGINFUNC(FUNC, CALLBACK, ...) \
@@ -298,17 +299,6 @@ void set_error(const char* text, int code)
     BEGINCALLBACK(enumdomain_callback, const char *domain)
     ENDCALLBACK(enumdomain_t, domain)
 
-    //void enumdomain_callback(AvahiDomainBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, const char *domain, AvahiLookupResultFlags flags, void *userdata)
-    //{
-    //    enumdomain_t* context = (enumdomain_t*)userdata;
-    //    if(AVAHI_BROWSER_FAILURE == event)
-    //    {
-    //        int error = avahi_client_errno(context->client);
-    //        set_error(avahi_strerror(error), error);
-    //    }
-    //    context->callback(context, flags, interface, AVAHI_BROWSER_FAILURE == event, domain, context->userdata);
-    //}
-
     BEGINFUNC(conf0_enumdomain_alloc, conf0_enumdomain_callback, unsigned int interface_)
     ENDFUNC(enumdomain_t, avahi_domain_browser_new, enumdomain_callback, nullptr, flags)
 
@@ -316,8 +306,24 @@ void set_error(const char* text, int code)
 
 	/* BROWSER */
 
-	void* conf0_browser_alloc(void* common_context, unsigned int flags, unsigned int interface_, const char* type, const char* domain, conf0_browser_callback callback, void* userdata) { return nullptr; }
-    void conf0_browser_free(void* browser_context) {}
+    struct browser_t : common_t
+    {
+        AvahiServiceBrowser* handle;
+        conf0_browser_callback callback;
+        void* userdata;
+    };
+
+    BEGINCALLBACK(browser_callback, const char *name, const char *type, const char *domain)
+    printf("%s %s %s\n", name, type, domain);
+    ENDCALLBACK(browser_t, name, type, domain)
+
+    BEGINFUNC(conf0_browser_alloc, conf0_browser_callback, unsigned int interface_, const char *type, const char *domain)
+    ENDFUNC(browser_t, avahi_service_browser_new, browser_callback, type, domain)
+
+    FREEPROC(conf0_browser_free, browser_t, avahi_service_browser_free)
+
+	//void* conf0_browser_alloc(void* common_context, unsigned int flags, unsigned int interface_, const char* type, const char* domain, conf0_browser_callback callback, void* userdata) { return nullptr; }
+    //void conf0_browser_free(void* browser_context) {}
 
 	/* RESOLVER */
 
