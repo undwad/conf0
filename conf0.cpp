@@ -1,6 +1,6 @@
 /*
 ** conf0.cpp by undwad
-** crossplatform (bonjour (windows/osx), avahi(linux)) zeroconf(mdns) module for lua 5.2 
+** crossplatform (bonjour (windows/osx), avahi(linux)) zeroconf(mdns) module for lua 5.2
 ** https://github.com/undwad/conf0 mailto:undwad@mail.ru
 ** see copyright notice in conf0.h
 */
@@ -68,7 +68,7 @@ void set_error(const char* text, int code)
 		userdata_t* userdata_ = (userdata_t*)userdata; \
 		DNSServiceRefDeallocate(userdata_->ref); \
 		delete userdata_; \
-	} 
+	}
 
 	/* COMMON */
 
@@ -90,19 +90,19 @@ void set_error(const char* text, int code)
 		if (result > 0)
 		{
 			DNSServiceErrorType error = kDNSServiceErr_NoError;
-			if(FD_ISSET(dns_sd_fd , &readfds)) 
+			if(FD_ISSET(dns_sd_fd , &readfds))
 				error = DNSServiceProcessResult(userdata_->ref);
-			if (kDNSServiceErr_NoError == error) 
+			if (kDNSServiceErr_NoError == error)
 				return 1;
 			else
 			{
-				set_error("DNSServiceProcessResult() failed", error); 
+				set_error("DNSServiceProcessResult() failed", error);
 				return -1;
 			}
 		}
 		else if(result < 0) //EINTR???
 		{
-			set_error("select() failed", errno); 
+			set_error("select() failed", errno);
 			return -1;
 		}
 		else
@@ -115,30 +115,30 @@ void set_error(const char* text, int code)
 
 	BEGINCALLBACK(enumdomain_callback, const char *domain)
 	ENDCALLBACK(DNSServiceEnumerateDomains, conf0_enumdomain_callback, domain)
-	
-	BEGINFUNC(conf0_enumdomain_alloc, conf0_enumdomain_callback) 
+
+	BEGINFUNC(conf0_enumdomain_alloc, conf0_enumdomain_callback)
 	ENDFUNC(DNSServiceEnumerateDomains, enumdomain_callback)
-	
+
 	FREEPROC(conf0_enumdomain_free)
 
 	/* BROWSER */
 
 	BEGINCALLBACK(browser_callback, const char* name, const char* type, const char* domain)
 	ENDCALLBACK(DNSServiceBrowse, conf0_browser_callback, name, type, domain)
-	
-	BEGINFUNC(conf0_browser_alloc, conf0_browser_callback, const char* type, const char* domain) 
+
+	BEGINFUNC(conf0_browser_alloc, conf0_browser_callback, const char* type, const char* domain)
 	ENDFUNC(DNSServiceBrowse, type, domain, browser_callback)
-	
+
 	FREEPROC(conf0_browser_free)
 
 	/* RESOLVER */
 
 	BEGINCALLBACK(resolver_callback, const char* fullname, const char* hosttarget, uint16_t opaqueport, uint16_t textlen, const unsigned char* text)
 	ENDCALLBACK(DNSServiceResolve, conf0_resolver_callback, fullname, hosttarget, opaqueport, textlen, text)
-	
-	BEGINFUNC(conf0_resolver_alloc, conf0_resolver_callback, const char* name, const char* type, const char* domain) 
+
+	BEGINFUNC(conf0_resolver_alloc, conf0_resolver_callback, const char* name, const char* type, const char* domain)
 	ENDFUNC(DNSServiceResolve, name, type, domain, resolver_callback)
-	
+
 	FREEPROC(conf0_resolver_free)
 
 	/* QUERY */
@@ -147,10 +147,10 @@ void set_error(const char* text, int code)
 
 	BEGINCALLBACK(query_callback, const char* fullname, uint16_t type, uint16_t class_, uint16_t datalen, const void* data, uint32_t ttl)
 	ENDCALLBACK(DNSServiceQueryRecord, conf0_query_callback, fullname, type, class_, datalen, data, ttl)
-	
-	BEGINFUNC(conf0_query_alloc, conf0_query_callback, const char* fullname, unsigned short type, unsigned short class_) 
+
+	BEGINFUNC(conf0_query_alloc, conf0_query_callback, const char* fullname, unsigned short type, unsigned short class_)
 	ENDFUNC(DNSServiceQueryRecord, fullname, type, class_, query_callback) //class = kDNSServiceClass_IN
-	
+
 	FREEPROC(conf0_query_free)
 
 	/* REGISTER */
@@ -159,13 +159,62 @@ void set_error(const char* text, int code)
 	{
 		uint32_t interface_ = 0;
 	ENDCALLBACK(DNSServiceRegister, conf0_register_callback, name, type, domain)
-	
+
 	BEGINFUNC(conf0_register_alloc, conf0_register_callback, const char* name, const char* type, const char* domain, const char* host, unsigned short port, unsigned short textlen, const void* text)
 	ENDFUNC(DNSServiceRegister, name, type, domain, host, port, textlen, text, register_callback)
-	
+
 	FREEPROC(conf0_register_free)
 
 #elif defined(LINUX)
+
+#   include <avahi-client/client.h>
+#   include <avahi-client/lookup.h>
+
+#   include <avahi-common/simple-watch.h>
+#   include <avahi-common/malloc.h>
+#   include <avahi-common/error.h>
+
+	/* COMMON */
+
+	void* conf0_common_alloc()
+	{
+        return nullptr;
+	}
+
+	void conf0_common_free(void* common_context)
+	{
+	}
+
+	int conf0_iterate(void* userdata, int timeout)
+	{
+
+	}
+
+	/* DOMAIN */
+
+	void* conf0_enumdomain_alloc(void* common_context, unsigned int flags, unsigned int interface_, conf0_enumdomain_callback callback, void* userdata) { return nullptr; }
+    void conf0_enumdomain_free(void* enumdomain_context) {}
+
+	/* BROWSER */
+
+	void* conf0_browser_alloc(void* common_context, unsigned int flags, unsigned int interface_, const char* type, const char* domain, conf0_browser_callback callback, void* userdata) { return nullptr; }
+    void conf0_browser_free(void* browser_context) {}
+
+	/* RESOLVER */
+
+	void* conf0_resolver_alloc(void* common_context, unsigned int flags, unsigned int interface_, const char* name,	const char* type, const char* domain, conf0_resolver_callback callback, void* userdata) { return nullptr; }
+    void conf0_resolver_free(void* resolver_context) {}
+
+	/* QUERY */
+
+	void* conf0_query_alloc(void* common_context, unsigned int flags, unsigned int interface_, const char* fullname, unsigned short type, unsigned short class_, conf0_query_callback callback, void* userdata) { return nullptr; }
+    void conf0_query_free(void* query_context) {}
+
+	/* REGISTER */
+
+	void* conf0_register_alloc(void* common_context, unsigned int flags, unsigned int interface_, const char* name, const char* type, const char* domain, const char* host, unsigned short port, unsigned short textlen, const void* text, conf0_register_callback callback, void* userdata) { return nullptr; }
+    void conf0_register_free(void* register_context) {}
+
 #elif defined(OSX)
 #else
 #	error incompatible platform

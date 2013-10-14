@@ -14,15 +14,22 @@ if (LUA_FOUND)
   message(${LUA_LIBRARY})
 endif (LUA_FOUND)
 
+FIND_PACKAGE(AVAHI)
+if (AVAHI_FOUND)
+  message("AVAHI was found!")
+  message(${AVAHI_INCLUDE_DIRS})
+  message(${AVAHI_LIBRARIES})
+endif (AVAHI_FOUND)
+
 file (GLOB FILES
 	"*.h"
 	"*.cpp"
 )
 
-include_directories(${LUA_INCLUDE_DIR})
+include_directories(${LUA_INCLUDE_DIR} ${AVAHI_INCLUDE_DIRS})
 
 add_library(${PROJECT} SHARED ${FILES})
 
-target_link_libraries (${PROJECT} ${LUA_LIBRARY})
+target_link_libraries (${PROJECT} ${LUA_LIBRARY} ${AVAHI_LIBRARIES})
 
 
