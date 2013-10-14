@@ -38,8 +38,8 @@ common = conf0.common()
 
 conf0.once(conf0.enumdomain, common, function(res) print(res) end) 
 
---local me, error, code = conf0.register("_http._tcp", function(res) print(prettytostring(res)) end, 'conf0test', nil, port2opaque(5500))
---if me then conf0.handle(me) else print(error, code) end
+local me, error, code = conf0.register(common, "_http._tcp", function(res) print(prettytostring(res)) end, 'conf0test', nil, port2opaque(5500))
+if me then conf0.iterate(me) else print(error, code) end
 
 local items = {}
 
@@ -54,7 +54,7 @@ conf0.wait(conf0.browse, common, function(item)
 			item.ip = inet_ntoa(res.data)
 		end) 
 	end) 
-end, "_rtsp._tcp", "local.") --_http._tcp
+end, "_http._tcp", "local.") --_http._tcp --_rtsp._tcp
 
 print(prettytostring(items))
 

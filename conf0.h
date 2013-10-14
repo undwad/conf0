@@ -127,6 +127,34 @@ void conf0_query_free(void* query_context);
 
 /* REGISTER */
 
+typedef void (*conf0_register_callback)
+(
+	void* register_context, 
+	unsigned int flags, 
+	unsigned int interface_, 
+	bool error, 
+	const char* name, 
+	const char* type, 
+	const char* domain, 
+	void* userdata
+);
+void* conf0_register_alloc
+(
+	void* common_context, 
+	unsigned int flags, 
+	unsigned int interface_, 
+	const char* name,
+	const char* type,
+	const char* domain, 
+	const char* host, 
+	unsigned short port,
+	unsigned short textlen,
+	const void* text, 
+	conf0_register_callback callback, 
+	void* userdata
+);
+void conf0_register_free(void* register_context);
+
 #endif // _CONF0_H__
 
 /******************************************************************************

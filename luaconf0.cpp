@@ -5,29 +5,6 @@
 ** see copyright notice in conf0.h
 */
 
-#if defined( __SYMBIAN32__ ) 
-#	define SYMBIAN
-#elif defined( __WIN32__ ) || defined( _WIN32 ) || defined( WIN32 )
-#	ifndef WIN32
-#		define WIN32
-#	endif
-#elif defined( __APPLE_CC__)
-#   if __ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__ >= 40000 || __IPHONE_OS_VERSION_MIN_REQUIRED >= 40000
-#		define IOS
-#   else
-#		define OSX
-#   endif
-#elif defined(linux) && defined(__arm__)
-#	define TEGRA2
-#elif defined(__ANDROID__)
-#	define ANDROID
-#elif defined( __native_client__ ) 
-#	define NATIVECLIENT
-#else
-#	define LINUX
-#endif
-
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -201,8 +178,8 @@ beginNewContext(enumdomain)
 	luaMandatoryUserDataParam(L, 1, common_context)
 	luaMandatoryCallbackParam(L, 2, callback) 
 	luaOptionalUnsignedParam(L, 3, flags, 0x40) 
-	luaOptionalUnsignedParam(L, 4, _interface, 0) 
-endNewContext(conf0_enumdomain_alloc, conf0_enumdomain_free, callback, ((ctx_t*)common_context)->context, flags, _interface, enumdomain_callback, userdata)
+	luaOptionalUnsignedParam(L, 4, interface_, 0) 
+endNewContext(conf0_enumdomain_alloc, conf0_enumdomain_free, callback, ((ctx_t*)common_context)->context, flags, interface_, enumdomain_callback, userdata)
 
 /* BROWSER */
 
@@ -218,8 +195,8 @@ beginNewContext(browse)
 	luaOptionalStringParam(L, 3, type, "")
 	luaOptionalStringParam(L, 4, domain, "")
 	luaOptionalUnsignedParam(L, 5, flags, 0) 
-	luaOptionalUnsignedParam(L, 6, _interface, 0) 
-endNewContext(conf0_browser_alloc, conf0_browser_free, callback, ((ctx_t*)common_context)->context, flags, _interface, type, domain, browser_callback, userdata)
+	luaOptionalUnsignedParam(L, 6, interface_, 0) 
+endNewContext(conf0_browser_alloc, conf0_browser_free, callback, ((ctx_t*)common_context)->context, flags, interface_, type, domain, browser_callback, userdata)
 
 /* RESOLVER */
 
@@ -237,8 +214,8 @@ beginNewContext(resolve)
 	luaMandatoryStringParam(L, 4, domain) 
 	luaMandatoryCallbackParam(L, 5, callback) 
 	luaOptionalUnsignedParam(L, 6, flags, 0) 
-	luaOptionalUnsignedParam(L, 7, _interface, 0) 
-endNewContext(conf0_resolver_alloc, conf0_resolver_free, callback, ((ctx_t*)common_context)->context, flags, _interface, name, type, domain, resolver_callback, userdata)
+	luaOptionalUnsignedParam(L, 7, interface_, 0) 
+endNewContext(conf0_resolver_alloc, conf0_resolver_free, callback, ((ctx_t*)common_context)->context, flags, interface_, name, type, domain, resolver_callback, userdata)
 
 /* QUERY */
 
@@ -257,38 +234,30 @@ beginNewContext(query)
 	luaMandatoryCallbackParam(L, 4, callback) 
 	luaOptionalUnsignedParam(L, 5, class_, 1) 
 	luaOptionalUnsignedParam(L, 6, flags, 0) 
-	luaOptionalUnsignedParam(L, 7, _interface, 0) 
-endNewContext(conf0_query_alloc, conf0_query_free, callback, ((ctx_t*)common_context)->context, flags, _interface, fullname, type, class_, query_callback, userdata)
+	luaOptionalUnsignedParam(L, 7, interface_, 0) 
+endNewContext(conf0_query_alloc, conf0_query_free, callback, ((ctx_t*)common_context)->context, flags, interface_, fullname, type, class_, query_callback, userdata)
 
+/* REGISTER */
 
-//
-//static void DNSSD_API registerReply(DNSServiceRef client, DNSServiceFlags flags, DNSServiceErrorType error, const char* name, const char* type, const char* domain, void* context)
-//{
-//	beginReplyCallback();
-//	luaSetUnsignedField(L, -2, "flags", flags);
-//	luaSetIntegerField(L, -2, "error", error);
-//	luaSetStringField(L, -2, "name", name);
-//	luaSetStringField(L, -2, "type", type);
-//	luaSetStringField(L, -2, "domain", domain);
-//	endReplyCallback("register reply");
-//}
-//
-//static int _register(lua_State *L) 
-//{
-//	luaMandatoryStringParam(L, 1, type);
-//	luaMandatoryCallbackParam(L, 2, ctx);
-//	luaOptionalStringParam(L, 3, name, nullptr);
-//	luaOptionalStringParam(L, 4, host, nullptr);
-//	luaOptionalUnsignedParam(L, 5, port, 0);
-//	luaOptionalStringParam(L, 6, domain, nullptr);
-//	luaOptionalUnsignedParam(L, 7, _interface, 0);
-//	luaOptionalUnsignedParam(L, 8, flags, 0);
-//	luaOptionalStringParam(L, 9, text, nullptr);
-//	luaOptionalUnsignedParam(L, 10, textlen, 0);
-//	int error = DNSServiceRegister(&ctx->client, flags, _interface, name, type, domain, host, port, textlen, text, registerReply, ctx);
-//	returnContext("register request");
-//	return 0;
-//}
+beginReplyCallback(register_callback, const char* name, const char* type, const char* domain)
+	luaSetStringField(L, -2, "name", name)
+	luaSetStringField(L, -2, "type", type)
+	luaSetStringField(L, -2, "domain", domain)
+endReplyCallback(register_callback)
+
+beginNewContext(register_)
+	luaMandatoryUserDataParam(L, 1, common_context)
+	luaMandatoryStringParam(L, 2, type);
+	luaMandatoryCallbackParam(L, 3, callback) 
+	luaOptionalStringParam(L, 4, name, nullptr);
+	luaOptionalStringParam(L, 5, host, nullptr);
+	luaOptionalUnsignedParam(L, 6, port, 0);
+	luaOptionalStringParam(L, 7, domain, nullptr);
+	luaOptionalUnsignedParam(L, 8, interface_, 0);
+	luaOptionalUnsignedParam(L, 9, flags, 0);
+	luaOptionalStringParam(L, 10, text, nullptr);
+	luaOptionalUnsignedParam(L, 11, textlen, 0);
+endNewContext(conf0_register_alloc, conf0_register_free, callback, ((ctx_t*)common_context)->context, flags, interface_, name, type, domain, host, port, textlen, text, register_callback, userdata)
 
 static int iterate(lua_State *L) 
 {
@@ -314,7 +283,7 @@ static const struct luaL_Reg lib[] =
 	{"browse", browse},
 	{"resolve", resolve},
 	{"query", query},
-	//{"register", _register},
+	{"register", register_},
 	{"iterate", iterate},
     {nullptr, nullptr},
 };

@@ -5,27 +5,7 @@
 ** see copyright notice in conf0.h
 */
 
-#if defined( __SYMBIAN32__ ) 
-#	define SYMBIAN
-#elif defined( __WIN32__ ) || defined( _WIN32 ) || defined( WIN32 )
-#	ifndef WIN32
-#		define WIN32
-#	endif
-#elif defined( __APPLE_CC__)
-#   if __ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__ >= 40000 || __IPHONE_OS_VERSION_MIN_REQUIRED >= 40000
-#		define IOS
-#   else
-#		define OSX
-#   endif
-#elif defined(linux) && defined(__arm__)
-#	define TEGRA2
-#elif defined(__ANDROID__)
-#	define ANDROID
-#elif defined( __native_client__ ) 
-#	define NATIVECLIENT
-#else
-#	define LINUX
-#endif
+#include "sysdefs.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -58,21 +38,21 @@ void set_error(const char* text, int code)
 		userdata_t(void* callback_, void* userdata_) : ref(nullptr), callback(callback_), userdata(userdata_) { }
 	};
 
-#	define CALLBACKDEF(CALLBACK, ...) \
-	void DNSSD_API CALLBACK(DNSServiceRef ref, DNSServiceFlags flags, uint32_t interface_, DNSServiceErrorType error, __VA_ARGS__, void* userdata)
+#	define BEGINCALLBACK(CALLBACK, ...) \
+	void DNSSD_API CALLBACK(DNSServiceRef ref, DNSServiceFlags flags, uint32_t interface_, DNSServiceErrorType error, __VA_ARGS__, void* userdata) \
+	{
 
-#	define CALLBACKBODY(FUNC, CALLBACK, ...) \
-	{ \
+#	define ENDCALLBACK(FUNC, CALLBACK, ...) \
 		userdata_t* userdata_ = (userdata_t*)userdata; \
 		if(kDNSServiceErr_NoError != error) set_error(#FUNC##"() failed", error); \
 		((CALLBACK)userdata_->callback)(ref, flags, interface_, kDNSServiceErr_NoError != error, __VA_ARGS__, userdata_->userdata); \
 	}
 
-#	define FUNCDEF(FUNC, CALLBACK, ...) \
-	void* FUNC(void* common_context, unsigned int flags, unsigned int interface_, __VA_ARGS__, CALLBACK callback, void* userdata)
+#	define BEGINFUNC(FUNC, CALLBACK, ...) \
+	void* FUNC(void* common_context, unsigned int flags, unsigned int interface_, __VA_ARGS__, CALLBACK callback, void* userdata) \
+	{
 
-#	define FUNCBODY(FUNC, ...) \
-	{ \
+#	define ENDFUNC(FUNC, ...) \
 		DNSServiceRef ref = nullptr; \
 		userdata_t* userdata_ = new userdata_t(callback, userdata); \
 		DNSServiceErrorType error = FUNC(&userdata_->ref, (DNSServiceFlags)flags, interface_, __VA_ARGS__, userdata_); \
@@ -131,35 +111,46 @@ void set_error(const char* text, int code)
 
 	/* DOMAIN */
 
-	CALLBACKDEF(enumdomain_callback, const char *domain)
-		CALLBACKBODY(DNSServiceEnumerateDomains, conf0_enumdomain_callback, domain)
-	FUNCDEF(conf0_enumdomain_alloc, conf0_enumdomain_callback)
-		FUNCBODY(DNSServiceEnumerateDomains, enumdomain_callback)
+	BEGINCALLBACK(enumdomain_callback, const char *domain)
+		ENDCALLBACK(DNSServiceEnumerateDomains, conf0_enumdomain_callback, domain)
+	BEGINFUNC(conf0_enumdomain_alloc, conf0_enumdomain_callback)
+		ENDFUNC(DNSServiceEnumerateDomains, enumdomain_callback)
 	FREEPROC(conf0_enumdomain_free)
 
 	/* BROWSER */
 
-	CALLBACKDEF(browser_callback, const char* name, const char* type, const char* domain)
-		CALLBACKBODY(DNSServiceBrowse, conf0_browser_callback, name, type, domain)
-	FUNCDEF(conf0_browser_alloc, conf0_browser_callback, const char* type, const char* domain)
-		FUNCBODY(DNSServiceBrowse, type, domain, browser_callback)
+	BEGINCALLBACK(browser_callback, const char* name, const char* type, const char* domain)
+		ENDCALLBACK(DNSServiceBrowse, conf0_browser_callback, name, type, domain)
+	BEGINFUNC(conf0_browser_alloc, conf0_browser_callback, const char* type, const char* domain)
+		ENDFUNC(DNSServiceBrowse, type, domain, browser_callback)
 	FREEPROC(conf0_browser_free)
 
 	/* RESOLVER */
 
-	CALLBACKDEF(resolver_callback, const char* fullname, const char* hosttarget, uint16_t opaqueport, uint16_t textlen, const unsigned char* text)
-		CALLBACKBODY(DNSServiceResolve, conf0_resolver_callback, fullname, hosttarget, opaqueport, textlen, text)
-	FUNCDEF(conf0_resolver_alloc, conf0_resolver_callback, const char* name, const char* type, const char* domain)
-		FUNCBODY(DNSServiceResolve, name, type, domain, resolver_callback)
+	BEGINCALLBACK(resolver_callback, const char* fullname, const char* hosttarget, uint16_t opaqueport, uint16_t textlen, const unsigned char* text)
+		ENDCALLBACK(DNSServiceResolve, conf0_resolver_callback, fullname, hosttarget, opaqueport, textlen, text)
+	BEGINFUNC(conf0_resolver_alloc, conf0_resolver_callback, const char* name, const char* type, const char* domain)
+		ENDFUNC(DNSServiceResolve, name, type, domain, resolver_callback)
 	FREEPROC(conf0_resolver_free)
 
 	/* QUERY */
 
-	CALLBACKDEF(query_callback, const char* fullname, uint16_t type, uint16_t class_, uint16_t datalen, const void* data, uint32_t ttl)
-		CALLBACKBODY(DNSServiceQueryRecord, conf0_query_callback, fullname, type, class_, datalen, data, ttl)
-	FUNCDEF(conf0_query_alloc, conf0_query_callback, const char* fullname, unsigned short type, unsigned short class_)
-		FUNCBODY(DNSServiceQueryRecord, fullname, type, class_, query_callback)
+	BEGINCALLBACK(query_callback, const char* fullname, uint16_t type, uint16_t class_, uint16_t datalen, const void* data, uint32_t ttl)
+		ENDCALLBACK(DNSServiceQueryRecord, conf0_query_callback, fullname, type, class_, datalen, data, ttl)
+	BEGINFUNC(conf0_query_alloc, conf0_query_callback, const char* fullname, unsigned short type, unsigned short class_)
+		ENDFUNC(DNSServiceQueryRecord, fullname, type, class_, query_callback)
 	FREEPROC(conf0_query_free)
+
+	/* REGISTER */
+
+	void DNSSD_API register_callback(DNSServiceRef ref, DNSServiceFlags flags, DNSServiceErrorType error, const char* name, const char* type, const char* domain, void* userdata)
+	{
+		uint32_t interface_ = 0;
+		ENDCALLBACK(DNSServiceRegister, conf0_register_callback, name, type, domain)
+	BEGINFUNC(conf0_register_alloc, conf0_register_callback, const char* name, const char* type, const char* domain, const char* host, unsigned short port, unsigned short textlen, const void* text)
+		ENDFUNC(DNSServiceRegister, name, type, domain, host, port, textlen, text, register_callback)
+	FREEPROC(conf0_register_free)
+
 #elif defined(LINUX)
 #elif defined(OSX)
 #else
