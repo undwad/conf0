@@ -43,7 +43,7 @@ if me then conf0.iterate(me) else print(error, code) end
 
 local items = {}
 
-conf0.wait(conf0.browse, common, function(item) 
+conf0.wait(conf0.browse, common, "_http._tcp", function(item) 
 	items[#items + 1] = item	
 	conf0.once(conf0.resolve, common, item.name, item.type, item.domain, function(res) 
 		item.fullname = res.fullname
@@ -54,7 +54,7 @@ conf0.wait(conf0.browse, common, function(item)
 			item.ip = inet_ntoa(res.data)
 		end) 
 	end) 
-end, "_http._tcp", "local.") --_http._tcp --_rtsp._tcp
+end) --_http._tcp --_rtsp._tcp
 
 print(prettytostring(items))
 
