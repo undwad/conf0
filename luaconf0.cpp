@@ -18,6 +18,14 @@
 #  define luaL_newlib(L,l) (lua_newtable(L), luaL_register(L,NULL,l))
 #endif
 
+static int luaerror(lua_State *L, const char* text, int code)
+{
+	lua_pushnil(L);
+	lua_pushstring(L, text);
+	lua_pushinteger(L, code);
+	return 3;
+}
+
 static int bytes(lua_State *L) 
 { 
 	if(lua_isnumber(L, 1)) 
@@ -28,14 +36,7 @@ static int bytes(lua_State *L)
 		lua_pushlstring(L, result, sizeof(value)); 
 		return 1; 
 	} 
-}
-
-static int luaerror(lua_State *L, const char* text, int code)
-{
-	lua_pushnil(L);
-	lua_pushstring(L, text);
-	lua_pushinteger(L, code);
-	return 3;
+	return luaerror(L, "bytes functions works only on numeric types", 0);
 }
 
 #define luaSetField(L, index, name, value, proc) proc(L, value); lua_setfield(L, index, name);
@@ -48,8 +49,11 @@ static int luaerror(lua_State *L, const char* text, int code)
 #define luaSetUserDataField(L, index, name, value) luaSetField(L, index, name, value, lua_pushlightuserdata);
 #define luaSetLStringField(L, index, name, value, len) lua_pushlstring(L, (const char*)value, len); lua_setfield(L, index, name);
 
+#define luaParamCheck(L, index, type, name, isproc) \
+	if(!isproc(L, index)) return luaerror(L, "parameter "#name##" must be a valid "#type, index); 
+
 #define luaParam(L, index, type, name, isproc, toproc) \
-	if(!isproc(L, index)) return luaerror(L, "parameter "#name##" must be a valid "#type, index); \
+	luaParamCheck(L, index, type, name, isproc) \
 	name = toproc(L, index); 
 
 #define luaMandatoryParam(L, index, type, name, isproc, toproc) \
@@ -115,6 +119,7 @@ static int gc(lua_State *L)
 #define beginNewContext(name) \
 	static int name(lua_State *L) \
 	{ 
+		
 
 #define endNewContext(ctor, dctor, idx, ...) \
 		userdata_t* userdata = new userdata_t(L, idx); \
@@ -191,7 +196,7 @@ endReplyCallback(browser_callback)
 
 beginNewContext(browse)
 	luaMandatoryUserDataParam(L, 1, common_context)
-	luaMandatoryStringParam(L, 2, type, "")
+	luaMandatoryStringParam(L, 2, type)
 	luaMandatoryCallbackParam(L, 3, callback) 
 	luaOptionalStringParam(L, 4, domain, "")
 	luaOptionalUnsignedParam(L, 5, flags, 0) 
