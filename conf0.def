@@ -2,3 +2,18 @@ LIBRARY conf0.dll
 DESCRIPTION "zeroconf lib for lua"
 EXPORTS
 luaopen_conf0
+conf0_error_text
+conf0_error_code
+conf0_common_alloc
+conf0_common_free
+conf0_iterate
+conf0_enumdomain_alloc
+conf0_enumdomain_free
+conf0_browser_alloc
+conf0_browser_free
+conf0_resolver_alloc
+conf0_resolver_free
+conf0_query_alloc
+conf0_query_free
+conf0_register_alloc
+conf0_register_free

@@ -49,11 +49,8 @@ static int bytes(lua_State *L)
 #define luaSetUserDataField(L, index, name, value) luaSetField(L, index, name, value, lua_pushlightuserdata);
 #define luaSetLStringField(L, index, name, value, len) lua_pushlstring(L, (const char*)value, len); lua_setfield(L, index, name);
 
-#define luaParamCheck(L, index, type, name, isproc) \
-	if(!isproc(L, index)) return luaerror(L, "parameter "#name##" must be a valid "#type, index); 
-
 #define luaParam(L, index, type, name, isproc, toproc) \
-	luaParamCheck(L, index, type, name, isproc) \
+	if(!isproc(L, index)) return luaerror(L, "parameter "#name##" must be a valid "#type, index);  \
 	name = toproc(L, index); 
 
 #define luaMandatoryParam(L, index, type, name, isproc, toproc) \
@@ -118,8 +115,8 @@ static int gc(lua_State *L)
 
 #define beginNewContext(name) \
 	static int name(lua_State *L) \
-	{ 
-		
+	{ \
+
 
 #define endNewContext(ctor, dctor, idx, ...) \
 		userdata_t* userdata = new userdata_t(L, idx); \
@@ -175,6 +172,8 @@ endNewContext(conf0_common_alloc, conf0_common_free, LUA_NOREF)
 
 /* DOMAIN */
 
+extern const int browser_browse;
+
 beginReplyCallback(enumdomain_callback, const char* domain)
 	luaSetStringField(L, -2, "domain", domain)
 endReplyCallback(enumdomain_callback)
@@ -182,7 +181,7 @@ endReplyCallback(enumdomain_callback)
 beginNewContext(enumdomain)
 	luaMandatoryUserDataParam(L, 1, common_context)
 	luaMandatoryCallbackParam(L, 2, callback) 
-	luaOptionalUnsignedParam(L, 3, flags, 0x40) 
+	luaOptionalUnsignedParam(L, 3, flags, browser_browse) 
 	luaOptionalUnsignedParam(L, 4, interface_, 0) 
 endNewContext(conf0_enumdomain_alloc, conf0_enumdomain_free, callback, ((ctx_t*)common_context)->context, flags, interface_, enumdomain_callback, userdata)
 
@@ -224,6 +223,8 @@ endNewContext(conf0_resolver_alloc, conf0_resolver_free, callback, ((ctx_t*)comm
 
 /* QUERY */
 
+extern const int record_class;
+
 beginReplyCallback(query_callback, const char* fullname, unsigned short type, unsigned short class_, unsigned short datalen, const void* data, unsigned int ttl)
 	luaSetStringField(L, -2, "fullname", fullname);
 	luaSetUnsignedField(L, -2, "type", type);
@@ -237,7 +238,7 @@ beginNewContext(query)
 	luaMandatoryStringParam(L, 2, fullname) 
 	luaMandatoryUnsignedParam(L, 3, type) 
 	luaMandatoryCallbackParam(L, 4, callback) 
-	luaOptionalUnsignedParam(L, 5, class_, 1) 
+	luaOptionalUnsignedParam(L, 5, class_, record_class) 
 	luaOptionalUnsignedParam(L, 6, flags, 0) 
 	luaOptionalUnsignedParam(L, 7, interface_, 0) 
 endNewContext(conf0_query_alloc, conf0_query_free, callback, ((ctx_t*)common_context)->context, flags, interface_, fullname, type, class_, query_callback, userdata)

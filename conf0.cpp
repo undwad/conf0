@@ -111,34 +111,46 @@ void set_error(const char* text, int code)
 
 	/* DOMAIN */
 
+	extern const int browser_browse = kDNSServiceFlagsBrowseDomains;
+
 	BEGINCALLBACK(enumdomain_callback, const char *domain)
-		ENDCALLBACK(DNSServiceEnumerateDomains, conf0_enumdomain_callback, domain)
-	BEGINFUNC(conf0_enumdomain_alloc, conf0_enumdomain_callback)
-		ENDFUNC(DNSServiceEnumerateDomains, enumdomain_callback)
+	ENDCALLBACK(DNSServiceEnumerateDomains, conf0_enumdomain_callback, domain)
+	
+	BEGINFUNC(conf0_enumdomain_alloc, conf0_enumdomain_callback) 
+	ENDFUNC(DNSServiceEnumerateDomains, enumdomain_callback)
+	
 	FREEPROC(conf0_enumdomain_free)
 
 	/* BROWSER */
 
 	BEGINCALLBACK(browser_callback, const char* name, const char* type, const char* domain)
-		ENDCALLBACK(DNSServiceBrowse, conf0_browser_callback, name, type, domain)
-	BEGINFUNC(conf0_browser_alloc, conf0_browser_callback, const char* type, const char* domain)
-		ENDFUNC(DNSServiceBrowse, type, domain, browser_callback)
+	ENDCALLBACK(DNSServiceBrowse, conf0_browser_callback, name, type, domain)
+	
+	BEGINFUNC(conf0_browser_alloc, conf0_browser_callback, const char* type, const char* domain) 
+	ENDFUNC(DNSServiceBrowse, type, domain, browser_callback)
+	
 	FREEPROC(conf0_browser_free)
 
 	/* RESOLVER */
 
 	BEGINCALLBACK(resolver_callback, const char* fullname, const char* hosttarget, uint16_t opaqueport, uint16_t textlen, const unsigned char* text)
-		ENDCALLBACK(DNSServiceResolve, conf0_resolver_callback, fullname, hosttarget, opaqueport, textlen, text)
-	BEGINFUNC(conf0_resolver_alloc, conf0_resolver_callback, const char* name, const char* type, const char* domain)
-		ENDFUNC(DNSServiceResolve, name, type, domain, resolver_callback)
+	ENDCALLBACK(DNSServiceResolve, conf0_resolver_callback, fullname, hosttarget, opaqueport, textlen, text)
+	
+	BEGINFUNC(conf0_resolver_alloc, conf0_resolver_callback, const char* name, const char* type, const char* domain) 
+	ENDFUNC(DNSServiceResolve, name, type, domain, resolver_callback)
+	
 	FREEPROC(conf0_resolver_free)
 
 	/* QUERY */
 
+	extern const int record_class = kDNSServiceClass_IN;
+
 	BEGINCALLBACK(query_callback, const char* fullname, uint16_t type, uint16_t class_, uint16_t datalen, const void* data, uint32_t ttl)
-		ENDCALLBACK(DNSServiceQueryRecord, conf0_query_callback, fullname, type, class_, datalen, data, ttl)
-	BEGINFUNC(conf0_query_alloc, conf0_query_callback, const char* fullname, unsigned short type, unsigned short class_)
-		ENDFUNC(DNSServiceQueryRecord, fullname, type, class_, query_callback)
+	ENDCALLBACK(DNSServiceQueryRecord, conf0_query_callback, fullname, type, class_, datalen, data, ttl)
+	
+	BEGINFUNC(conf0_query_alloc, conf0_query_callback, const char* fullname, unsigned short type, unsigned short class_) 
+	ENDFUNC(DNSServiceQueryRecord, fullname, type, class_, query_callback) //class = kDNSServiceClass_IN
+	
 	FREEPROC(conf0_query_free)
 
 	/* REGISTER */
@@ -146,9 +158,11 @@ void set_error(const char* text, int code)
 	void DNSSD_API register_callback(DNSServiceRef ref, DNSServiceFlags flags, DNSServiceErrorType error, const char* name, const char* type, const char* domain, void* userdata)
 	{
 		uint32_t interface_ = 0;
-		ENDCALLBACK(DNSServiceRegister, conf0_register_callback, name, type, domain)
+	ENDCALLBACK(DNSServiceRegister, conf0_register_callback, name, type, domain)
+	
 	BEGINFUNC(conf0_register_alloc, conf0_register_callback, const char* name, const char* type, const char* domain, const char* host, unsigned short port, unsigned short textlen, const void* text)
-		ENDFUNC(DNSServiceRegister, name, type, domain, host, port, textlen, text, register_callback)
+	ENDFUNC(DNSServiceRegister, name, type, domain, host, port, textlen, text, register_callback)
+	
 	FREEPROC(conf0_register_free)
 
 #elif defined(LINUX)
