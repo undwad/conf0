@@ -191,6 +191,7 @@ void set_error(const char* text, int code)
 	}
 
 	/* DOMAIN */
+	extern const int browser_browse = AVAHI_DOMAIN_BROWSER_BROWSE;
 
 	void* conf0_enumdomain_alloc(void* common_context, unsigned int flags, unsigned int interface_, conf0_enumdomain_callback callback, void* userdata) { return nullptr; }
     void conf0_enumdomain_free(void* enumdomain_context) {}
@@ -206,6 +207,7 @@ void set_error(const char* text, int code)
     void conf0_resolver_free(void* resolver_context) {}
 
 	/* QUERY */
+	extern const int record_class = 1;
 
 	void* conf0_query_alloc(void* common_context, unsigned int flags, unsigned int interface_, const char* fullname, unsigned short type, unsigned short class_, conf0_query_callback callback, void* userdata) { return nullptr; }
     void conf0_query_free(void* query_context) {}
