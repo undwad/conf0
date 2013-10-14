@@ -93,7 +93,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="conf0.h" />
-    <ClInclude Include="sysdefs.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="conf0.def" />

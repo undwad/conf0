@@ -5,7 +5,27 @@
 ** see copyright notice in conf0.h
 */
 
-#include "sysdefs.h"
+#if defined( __SYMBIAN32__ ) 
+#	define SYMBIAN
+#elif defined( __WIN32__ ) || defined( _WIN32 ) || defined( WIN32 )
+#	ifndef WIN32
+#		define WIN32
+#	endif
+#elif defined( __APPLE_CC__)
+#   if __ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__ >= 40000 || __IPHONE_OS_VERSION_MIN_REQUIRED >= 40000
+#		define IOS
+#   else
+#		define OSX
+#   endif
+#elif defined(linux) && defined(__arm__)
+#	define TEGRA2
+#elif defined(__ANDROID__)
+#	define ANDROID
+#elif defined( __native_client__ ) 
+#	define NATIVECLIENT
+#else
+#	define LINUX
+#endif
 
 #include <stdio.h>
 #include <string.h>
@@ -176,8 +196,22 @@ void set_error(const char* text, int code)
 
 	/* COMMON */
 
+	struct common_t
+	{
+        AvahiSimplePoll* poll;
+        AvahiClient* client;
+	};
+
 	void* conf0_common_alloc()
 	{
+        common_t* common = new common_t;
+        if(common)
+        {
+            if(common->poll = avahi_simple_poll_new())
+            {
+            }
+            delete common;
+        }
         return nullptr;
 	}
 
