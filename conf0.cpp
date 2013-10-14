@@ -44,7 +44,7 @@ void set_error(const char* text, int code)
 
 #	define ENDCALLBACK(FUNC, CALLBACK, ...) \
 		userdata_t* userdata_ = (userdata_t*)userdata; \
-		if(kDNSServiceErr_NoError != error) set_error(#FUNC##"() failed", error); \
+		if(kDNSServiceErr_NoError != error) set_error(#FUNC "() failed", error); \
 		((CALLBACK)userdata_->callback)(ref, flags, interface_, kDNSServiceErr_NoError != error, __VA_ARGS__, userdata_->userdata); \
 	}
 
@@ -57,7 +57,7 @@ void set_error(const char* text, int code)
 		userdata_t* userdata_ = new userdata_t(callback, userdata); \
 		DNSServiceErrorType error = FUNC(&userdata_->ref, (DNSServiceFlags)flags, interface_, __VA_ARGS__, userdata_); \
 		if(kDNSServiceErr_NoError == error) return userdata_; \
-		set_error(#FUNC##"() failed", error); \
+		set_error(#FUNC "() failed", error); \
 		delete userdata_; \
 		return nullptr; \
 	}

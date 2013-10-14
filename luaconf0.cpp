@@ -50,7 +50,7 @@ static int bytes(lua_State *L)
 #define luaSetLStringField(L, index, name, value, len) lua_pushlstring(L, (const char*)value, len); lua_setfield(L, index, name);
 
 #define luaParam(L, index, type, name, isproc, toproc) \
-	if(!isproc(L, index)) return luaerror(L, "parameter "#name##" must be a valid "#type, index);  \
+	if(!isproc(L, index)) return luaerror(L, "parameter " #name " must be a valid "#type, index);  \
 	name = toproc(L, index); 
 
 #define luaMandatoryParam(L, index, type, name, isproc, toproc) \
@@ -64,7 +64,7 @@ static int bytes(lua_State *L)
 #define luaMandatoryStringParam(L, index, name) luaMandatoryParam(L, index, const char*, name, lua_isstring, lua_tostring)
 #define luaMandatoryUserDataParam(L, index, name) luaMandatoryParam(L, index, void*, name, lua_isuserdata, lua_touserdata)
 #define luaMandatoryCallbackParam(L, index, name) \
-	if(!lua_isfunction(L, index)) return luaerror(L, "parameter "#name##" must be a valid function", index); \
+	if(!lua_isfunction(L, index)) return luaerror(L, "parameter " #name " must be a valid function", index); \
 	lua_pushvalue(L, index); \
 	int name = luaL_ref(L, LUA_REGISTRYINDEX);
 
@@ -160,7 +160,7 @@ static int gc(lua_State *L)
 #define endReplyCallback(name) \
 		if(lua_pcall(L, 1, 0, 0)) \
 		{ \
-			fprintf(stderr, #name##" callback error %s\n", lua_tostring(L, -1)); \
+			fprintf(stderr, #name " callback error %s\n", lua_tostring(L, -1)); \
 			lua_pop(L, 1); \
 		}	\
 	}
