@@ -203,6 +203,25 @@
 		conf0_call_dns_service(DNSServiceRegister, &context->ref, (DNSServiceFlags)flags, interface_, name, type, domain, host, port, textlen, text, register_callback, context)
 	luaM_func_end
 
+	void reg_flags(lua_State *L) 
+	{
+		luaM_setfield(-1, integer, more_comming, kDNSServiceFlagsMoreComing) // browse callback | resolve callback | query callback
+		luaM_setfield(-1, integer, add, kDNSServiceFlagsAdd) // browse callback | query callback | register callback
+		luaM_setfield(-1, integer, force_multicast, kDNSServiceFlagsForceMulticast) // resolve | query
+		luaM_setfield(-1, integer, long_lived_query, kDNSServiceFlagsLongLivedQuery) // query
+	}
+
+	void reg_classes(lua_State *L) // query | query callback
+	{
+		luaM_setfield(-1, integer, class_in, kDNSServiceClass_IN) 
+	}
+
+	void reg_types(lua_State *L) // query | query callback
+	{
+		luaM_setfield(-1, integer, PTR, kDNSServiceType_PTR) 
+		luaM_setfield(-1, integer, SRV, kDNSServiceType_SRV)
+	}
+
 #elif defined(LINUX)
 
 #   include <avahi-client/client.h>
@@ -235,6 +254,15 @@ extern "C"
 	LUAMOD_API int luaopen_conf0(lua_State *L) 
 	{
 		luaL_newlib (L, lib);
+		lua_newtable(L);
+		reg_flags(L);
+		lua_setfield(L, -2, "flags");
+		lua_newtable(L);
+		reg_classes(L);
+		lua_setfield(L, -2, "classes");
+		lua_newtable(L);
+		reg_types(L);
+		lua_setfield(L, -2, "types");
 		lua_setglobal(L, "conf0");
 		return 1;
 	}

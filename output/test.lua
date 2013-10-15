@@ -27,6 +27,8 @@ port2opaque = opaque2port
 local restrator = conf0.register_{type = "_http._tcp", name = 'conf0test', port = port2opaque(5500), callback = function(res) print(prettytostring(res)) end}
 conf0.iterate{ref=restrator}
 
+print(prettytostring(conf0))
+
 local items = {}
 
 -- _http._tcp _rtsp._tcp
