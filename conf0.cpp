@@ -115,6 +115,10 @@
 		}
 	luaM_func_end
 
+	luaM_func_begin(connect)
+		luaM_return(lightuserdata, (void*)-1)
+	luaM_func_end
+
 	/* BROWSE */
 
 	conf0_callback_begin(browse_callback, uint32_t interface_, DNSServiceErrorType error, const char* name, const char* type, const char* domain)
@@ -355,6 +359,7 @@
 static const struct luaL_Reg lib[] = 
 {
 	{"savestack", luaM_save_stack},
+	{"connect", connect},
 	{"browse", browse},
 	{"resolve", resolve},
 	{"query", query},
