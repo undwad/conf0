@@ -67,10 +67,8 @@ static int lua_toregistry(lua_State* L, int idx)
 	luaM_type_##TYPE NAME = DEF; \
 	lua_getfield(L, 1, #NAME); \
 	if(lua_is##TYPE(L, -1)) \
-	{ \
 		NAME = lua_to##TYPE(L, -1); \
-		lua_pop(L, 1); \
-	} 
+	lua_pop(L, 1); 
 
 #define luaM_return(TYPE, ...) \
 	lua_push##TYPE(L, __VA_ARGS__); \

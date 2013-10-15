@@ -1,5 +1,7 @@
-require 'conf0'
 require 'std'
+require 'conf0'
+
+function savestack() conf0.savestack('f:/github/conf0/output/stack.txt') end
 
 byte = string.byte
 
@@ -10,44 +12,29 @@ function port2opaque(port)
 	return byte(bytes, 1) * 256 + byte(bytes, 2)
 end
 
-function conf0.once(client, error, code)
-	if client then
-		local result, error, code = conf0.iterate(client)
-		if nil == result then print(error, code) end
-	else print(error, code)	end
-end
-
-function conf0.wait(client, error, code)
-	if client then
-		local result = true
-		while result do
-			local result, error, code = conf0.iterate(client)
-			if not result then
-				if nil == result then print(error, code) end
-				break
-			end
-		end
-	else print(error, code)	end
-end
-
 --local me, error, code = conf0.register(common, "_http._tcp", function(res) print(prettytostring(res)) end, 'conf0test', nil, port2opaque(5500))
 --if me then conf0.iterate(me) else print(error, code) end
 
 local items = {}
 
-conf0.wait(conf0.browse(common, "_http._tcp", function(item) 
-	items[#items + 1] = item	
-	conf0.once(conf0.resolve(common, item.name, item.type, item.domain, function(res) 
-		item.fullname = res.fullname
-		item.hosttarget = res.hosttarget
-		item.opaqueport = res.opaqueport
-		item.port = port2opaque(res.opaqueport)
-		conf0.once(conf0.query(common, item.hosttarget, 1, function(res) 
-			item.ip = inet_ntoa(res.data)
-		end))
-	end))
-end)) --_http._tcp --_rtsp._tcp
+-- _http._tcp _rtsp._tcp
+local browser = conf0.browse{type='_http._tcp', callback=function(i) 
+	items[#items + 1] = i
+	print('.')
+	local resolver = conf0.resolve{name = i.name, type = i.type, domain = i.domain, callback=function(j)
+		for k,v in pairs(j) do i[k] = v end
+		print('.')
+	end}
+	conf0.iterate{ref=resolver}
+end}
 
-print(prettytostring(items))
 
-os.execute('pause')
+--item.port = port2opaque(res.opaqueport)
+--conf0.once(conf0.query(common, item.hosttarget, 1, function(res) 
+--	item.ip = inet_ntoa(res.data)
+--end))
+
+
+while conf0.iterate{ref=browser} do end
+
+print(prettytostring(items))	

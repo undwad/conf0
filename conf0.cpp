@@ -33,30 +33,6 @@
 
 #include "luaM.h"
 
-luaM_func_begin(test)
-	luaM_reqd_param(boolean, p1)
-	luaM_reqd_param(number, p2)
-	luaM_reqd_param(integer, p3)
-	luaM_reqd_param(unsigned, p4)
-	luaM_reqd_param(string, p5)
-	luaM_reqd_param(table, p6)
-	luaM_reqd_param(function, p7)
-	printf("%d %f %d %d %s %d %d\n",p1,p2,p3,p4,p5,p6,p7);
-	luaM_opt_param(boolean, p8, false)
-	luaM_opt_param(number, p9, 2.34)
-	luaM_opt_param(integer, p10, -10)
-	luaM_opt_param(unsigned, p11, 10)
-	luaM_opt_param(string, p12, "default")
-	printf("%d %f %d %d %s\n",p8,p9,p10,p11,p12);
-	luaM_return(boolean, true)
-	luaM_return(integer, 123)
-	luaM_return(number, 123.321)
-	luaM_return(lightuserdata, nullptr)
-	luaM_return(string, "JODER")
-	luaM_return(literal, "JODER")
-	luaM_return(nil)
-luaM_func_end
-
 #if defined(WIN32)
 #	include "dns_sd.h"
 #	pragma comment(lib, "dnssd.lib")
@@ -148,7 +124,9 @@ luaM_func_end
 		else if(res < 0) //EINTR???
 			return luaL_error(L, "select() failed with error", errno);
 		else
+		{
 			luaM_return(boolean, false)
+		}
 	luaM_func_end
 
 	/* BROWSE */
@@ -234,7 +212,6 @@ luaM_func_end
 
 static const struct luaL_Reg lib[] = 
 {
-	{"test", test},
 	{"savestack", luaM_save_stack},
 	{"browse", browse},
 	{"resolve", resolve},
