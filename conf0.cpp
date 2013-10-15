@@ -208,8 +208,20 @@
 	{
 		conf0_reg_flag(MoreComing) // browse callback | resolve callback | query callback
 		conf0_reg_flag(Add) // browse callback | query callback | register callback
-		conf0_reg_flag(ForceMulticast) // resolve | query
+		conf0_reg_flag(Default)
+		conf0_reg_flag(NoAutoRename)
+		conf0_reg_flag(Shared)
+		conf0_reg_flag(Unique)
+		conf0_reg_flag(BrowseDomains)
+		conf0_reg_flag(RegistrationDomains)
 		conf0_reg_flag(LongLivedQuery) // query
+		conf0_reg_flag(AllowRemoteQuery)
+		conf0_reg_flag(ForceMulticast) // resolve | query
+		conf0_reg_flag(Force)
+		conf0_reg_flag(ReturnIntermediates)
+		conf0_reg_flag(NonBrowsable)
+		conf0_reg_flag(ShareConnection)
+		conf0_reg_flag(SuppressUnusable)
 	}
 
 #	undef IN

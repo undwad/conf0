@@ -32,7 +32,7 @@ print(prettytostring(conf0))
 local items = {}
 
 -- _http._tcp _rtsp._tcp
-local browser = conf0.browse{type = '_http._tcp', callback = function(i) 
+local browser = conf0.browse{type = '_rtsp._tcp', callback = function(i) 
 	io.write('.')
 	items[#items + 1] = i
 	local resolver = conf0.resolve{name = i.name, type = i.type, domain = i.domain, callback=function(j)
