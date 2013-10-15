@@ -97,39 +97,36 @@ luaM_func_end
 	//void* conf0_common_alloc() { return (void*)-1; }
 	//void conf0_common_free(void* common_context) { }
 
-	//int conf0_iterate(void* userdata, int timeout)
-	//{
-	//	userdata_t* userdata_ = (userdata_t*)userdata;
-	//	int dns_sd_fd  = DNSServiceRefSockFD(userdata_->ref);
-	//	int nfds = dns_sd_fd + 1;
-	//	fd_set readfds;
-	//	FD_ZERO(&readfds);
-	//	FD_SET(dns_sd_fd , &readfds);
-	//	timeval tv;
-	//	tv.tv_sec  = timeout / 1000;
-	//	tv.tv_usec = (timeout % 1000) * 1000;
-	//	int result = select(nfds, &readfds, (fd_set*)NULL, (fd_set*)NULL, &tv);
-	//	if (result > 0)
-	//	{
-	//		DNSServiceErrorType error = kDNSServiceErr_NoError;
-	//		if(FD_ISSET(dns_sd_fd , &readfds))
-	//			error = DNSServiceProcessResult(userdata_->ref);
-	//		if (kDNSServiceErr_NoError == error)
-	//			return 0;
-	//		else
-	//		{
-	//			set_error("DNSServiceProcessResult() failed", error);
-	//			return -1;
-	//		}
-	//	}
-	//	else if(result < 0) //EINTR???
-	//	{
-	//		set_error("select() failed", errno);
-	//		return -1;
-	//	}
-	//	else
-	//		return 1;
-	//}
+	luaM_func_begin(iterate)
+		luaM_reqd_param(userdata, ref)
+		luaM_opt_param(integer, timeout, 5000)
+		context_t* context = (context_t*)ref;
+		int dns_sd_fd  = DNSServiceRefSockFD(context->ref);
+		int nfds = dns_sd_fd + 1;
+		fd_set readfds;
+		FD_ZERO(&readfds);
+		FD_SET(dns_sd_fd , &readfds);
+		timeval tv;
+		tv.tv_sec  = timeout / 1000;
+		tv.tv_usec = (timeout % 1000) * 1000;
+		int res = select(nfds, &readfds, (fd_set*)NULL, (fd_set*)NULL, &tv);
+		if (res > 0)
+		{
+			DNSServiceErrorType error = kDNSServiceErr_NoError;
+			if(FD_ISSET(dns_sd_fd , &readfds))
+				error = DNSServiceProcessResult(context->ref);
+			if (kDNSServiceErr_NoError == error)
+			{
+				luaM_return(boolean, true)
+			}
+			else
+				return luaL_error(L, "DNSServiceProcessResult() failed with error", error);
+		}
+		else if(res < 0) //EINTR???
+			return luaL_error(L, "select() failed with error", errno);
+		else
+			luaM_return(boolean, false)
+	luaM_func_end
 
 	/* BROWSE */
 
@@ -219,7 +216,7 @@ static const struct luaL_Reg lib[] =
 	//{"resolve", resolve},
 	//{"query", query},
 	//{"register", register_},
-	//{"iterate", iterate},
+	{"iterate", iterate},
     {nullptr, nullptr},
 };
 
