@@ -14,12 +14,21 @@
 
 #include "lua.hpp"
 
+#define luaM__gc(TYPE) \
+	static int TYPE##__gc(lua_State *L) \
+	{ \
+		if(!lua_isuserdata(L, 1)) \
+			return luaL_error(L, "single __gc parameter must be of type userdata"); \
+		delete (TYPE*)lua_touserdata(L, 1); \
+		return 0; \
+	}
+
 #define luaM_func_begin(NAME) \
 	static int NAME(lua_State* L) \
 	{ \
 		int result = 0; \
 		if(!lua_istable(L, 1)) \
-			return luaL_error(L, "a single function parameter must be of type table");
+			return luaL_error(L, "single function parameter must be of type table");
 
 #define lua_isinteger lua_isnumber
 #define lua_isunsigned lua_isnumber
@@ -66,9 +75,23 @@ static int lua_toregistry(lua_State* L, int idx)
 	lua_push##TYPE(L, __VA_ARGS__); \
 	result++;
 
+#define luaM_return_userdata(TYPE, ...) \
+	TYPE* ptr = (TYPE*) lua_newuserdata(L, sizeof(TYPE)); \
+	ptr->TYPE(__VA_ARGS__); \
+	lua_newtable(L); \
+	lua_pushlightuserdata(L, dctor); \
+	lua_pushcclosure(L, TYPE##__gc, 1); \
+	lua_setfield(L, -2, "__gc"); \
+	lua_setmetatable(L, -2); \
+	result++;
+
 #define luaM_func_end \
 		return result; \
 	}
+
+#define luaM_setfield(IDX, TYPE, NAME, ...) \
+	lua_push##TYPE(L, __VA_ARGS__); \
+	lua_setfield(L, IDX, #NAME)
 
 #endif // _LUA_MISC_H__
 
