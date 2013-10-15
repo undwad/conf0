@@ -1,6 +1,6 @@
 /*
-** luamisc.h by undwad
-** macro extensions for lua 5.2 api
+** luaM.h by undwad
+** macro extensions for lua 5.2 C api
 ** mailto:undwad@mail.ru
 ** see copyright notice at the end of this file
 */

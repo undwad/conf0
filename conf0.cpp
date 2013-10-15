@@ -31,7 +31,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "luamisc.h"
+#include "luaM.h"
 
 
 #if defined(WIN32)
