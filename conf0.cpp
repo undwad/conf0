@@ -39,7 +39,13 @@
 #	pragma comment(lib, "dnssd.lib")
 #	pragma comment(lib, "ws2_32.lib")
 
-luaM_function_begin(test)
+luaM_func_begin(test)
+	luaM_reqd_param(boolean, p1)
+	luaM_reqd_param(number, p2)
+	luaM_reqd_param(integer, p3)
+	luaM_reqd_param(unsigned, p4)
+	luaM_reqd_param(string, p5)
+	printf("%d %f %d %d %s\n",p1,p2,p3,p4,p5);
 	luaM_return(boolean, true)
 	luaM_return(integer, 123)
 	luaM_return(number, 123.321)
@@ -47,7 +53,7 @@ luaM_function_begin(test)
 	luaM_return(string, "JODER")
 	luaM_return(literal, "JODER")
 	luaM_return(nil)
-luaM_function_end
+luaM_func_end
 
 
 #elif defined(LINUX)

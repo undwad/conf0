@@ -14,20 +14,59 @@
 
 #include "lua.hpp"
 
-#define luaM_function_begin(NAME) \
+#define luaM_func_begin(NAME) \
 	static int NAME(lua_State* L) \
 	{ \
 		int result = 0; \
 		if(!lua_istable(L, 1)) \
 			return luaL_error(L, "a single function parameter must be of type table");
 
+#define lua_isinteger lua_isnumber
+#define lua_isunsigned lua_isnumber
+
+#define luaM_type_boolean bool
+#define luaM_type_number double
+#define luaM_type_integer int
+#define luaM_type_unsigned unsigned int
+#define luaM_type_string const char*
+#define luaM_type_userdata void*
+#define luaM_type_cfunction lua_CFunction
+
+#define luaM_reqd_param(TYPE, NAME) \
+	lua_getfield(L, 1, #NAME); \
+	if(!lua_is##TYPE(L, -1)) \
+	{ \
+		lua_pop(L, 1); \
+		return luaL_error(L, "required parameter " #NAME " must be of type " #TYPE); \
+	} \
+	luaM_type_##TYPE NAME = lua_to##TYPE(L, -1); \
+	lua_pop(L, 1); 
+
+	
+
 #define luaM_return(TYPE, ...) \
 	lua_push##TYPE(L, __VA_ARGS__); \
 	result++;
 
-#define luaM_function_end \
+#define luaM_func_end \
 		return result; \
 	}
+
+//lua_toboolean lua_isboolean
+//lua_tonumber lua_isnumber
+//lua_tointeger
+//lua_tounsigned
+//lua_tostring lua_isstring
+//lua_touserdata lua_islightuserdata lua_isuserdata
+//lua_topointer 
+//lua_tocfunction lua_iscfunction
+//lua_tolstring
+
+//lua_isnil lua_isnone lua_isnoneornil
+
+
+//lua_isfunction lua_istable
+
 
 #endif // _LUA_MISC_H__
 
