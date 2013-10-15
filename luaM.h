@@ -93,6 +93,51 @@ static int lua_toregistry(lua_State* L, int idx)
 	lua_push##TYPE(L, __VA_ARGS__); \
 	lua_setfield(L, IDX < 0 ? IDX - 1 : IDX, #NAME);
 
+static void luaM_print_value(lua_State* L, FILE* f, int i = -1)
+{
+	switch (lua_type(L, i))
+	{
+	case LUA_TNIL: fprintf(f, "%s nil\n", luaL_typename(L, i)); break;
+	case LUA_TBOOLEAN: fprintf(f, "%s %s\n", luaL_typename(L, i), lua_toboolean(L, i) ? "true" : "false"); break;
+	case LUA_TNUMBER: fprintf(f, "%s %f\n", luaL_typename(L, i), lua_tonumber(L, i)); break;
+	case LUA_TSTRING: fprintf(f, "%s %s\n", luaL_typename(L, i), lua_tostring(L, i)); break;
+	case LUA_TTABLE:
+	case LUA_TFUNCTION:
+	case LUA_TTHREAD:
+	case LUA_TLIGHTUSERDATA:
+	case LUA_TUSERDATA: fprintf(f, "%s %x\n", luaL_typename(L, i), lua_topointer(L, i)); break;
+	}
+}
+
+static void luaM_print_stack(lua_State* L, FILE* f)
+{
+	for (int i = 1; i <= lua_gettop(L); i++)
+	{
+		fprintf(f, "%d: ", i);
+		luaM_print_value(L, f, i);
+	}
+}
+
+static void luaM_save_stack(lua_State* L, const char* path)
+{ 
+	FILE* f = fopen(path, "w");
+	luaM_print_stack(L, f); 
+	fflush(f);
+	fclose(f);
+}
+
+static int luaM_save_stack(lua_State* L)
+{ 
+	const char* path = lua_tostring(L, 1);
+	if(path)
+	{
+		lua_pop(L, 1);
+		luaM_save_stack(L, path);
+		return 0;
+	}
+	return luaL_error(L, "invalid output file path");
+}
+
 #endif // _LUA_MISC_H__
 
 /******************************************************************************

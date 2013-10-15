@@ -235,6 +235,7 @@ luaM_func_end
 static const struct luaL_Reg lib[] = 
 {
 	{"test", test},
+	{"savestack", luaM_save_stack},
 	{"browse", browse},
 	{"resolve", resolve},
 	//{"query", query},
