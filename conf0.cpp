@@ -48,6 +48,12 @@ luaM_func_begin(test)
 	luaM_reqd_param(table, p6)
 	luaM_reqd_param(function, p7)
 	printf("%d %f %d %d %s %d %d\n",p1,p2,p3,p4,p5,p6,p7);
+	luaM_opt_param(boolean, p8, false)
+	luaM_opt_param(number, p9, 2.34)
+	luaM_opt_param(integer, p10, -10)
+	luaM_opt_param(unsigned, p11, 10)
+	luaM_opt_param(string, p12, "default")
+	printf("%d %f %d %d %s\n",p8,p9,p10,p11,p12);
 	luaM_return(boolean, true)
 	luaM_return(integer, 123)
 	luaM_return(number, 123.321)
