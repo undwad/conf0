@@ -63,20 +63,6 @@
 		return luaL_error(L, #FUNC "() failed with error %d", error); \
 	}
 
-//#	define BEGINFUNC(FUNC, CALLBACK, ...) \
-//	void* FUNC(void* common_context, unsigned int flags, unsigned int interface_, __VA_ARGS__, CALLBACK callback, void* userdata) \
-//	{
-//
-//#	define ENDFUNC(FUNC, ...) \
-//		DNSServiceRef ref = nullptr; \
-//		userdata_t* userdata_ = new userdata_t(callback, userdata); \
-//		DNSServiceErrorType error = FUNC(&userdata_->ref, (DNSServiceFlags)flags, interface_, __VA_ARGS__, userdata_); \
-//		if(kDNSServiceErr_NoError == error) return userdata_; \
-//		set_error(#FUNC "() failed", error); \
-//		delete userdata_; \
-//		return nullptr; \
-//	}
-
 	/* CONNECT */
 
 	struct context_t
@@ -98,7 +84,7 @@
 
 	luaM_func_begin(iterate)
 		luaM_reqd_param(userdata, ref)
-		luaM_opt_param(integer, timeout, 5000)
+		luaM_opt_param(integer, timeout, 1000)
 		context_t* context = (context_t*)ref;
 		int dns_sd_fd  = DNSServiceRefSockFD(context->ref);
 		int nfds = dns_sd_fd + 1;
@@ -132,7 +118,7 @@
 	/* BROWSE */
 
 	conf0_callback_begin(browse_callback, uint32_t interface_, DNSServiceErrorType error, const char* name, const char* type, const char* domain)
-		luaM_setfield(-1, unsigned, interface, interface_)
+		luaM_setfield(-1, unsigned, interface_, interface_)
 		luaM_setfield(-1, string, name, name)
 		luaM_setfield(-1, string, type, type)
 		luaM_setfield(-1, string, domain, domain)
@@ -151,12 +137,12 @@
 	/* RESOLVE */
 
 	conf0_callback_begin(resolve_callback, uint32_t interface_, DNSServiceErrorType error, const char* fullname, const char* hosttarget, uint16_t opaqueport, uint16_t textlen, const unsigned char* text)
-		luaM_setfield(-1, unsigned, interface, interface_)
+		luaM_setfield(-1, unsigned, interface_, interface_)
 		luaM_setfield(-1, string, fullname, fullname)
 		luaM_setfield(-1, string, hosttarget, hosttarget)
 		luaM_setfield(-1, unsigned, opaqueport, opaqueport)
 		luaM_setfield(-1, unsigned, textlen, textlen)
-		luaM_setfield(-1, string, text, (const char*)text)
+		luaM_setfield(-1, lstring, text, (const char*)text, textlen)
 	conf0_callback_end(resolve_callback)
 
 	luaM_func_begin(resolve)
@@ -174,14 +160,25 @@
 
 	extern const int record_class = kDNSServiceClass_IN;
 
-	void DNSSD_API query_callback(DNSServiceRef ref, DNSServiceFlags flags, uint32_t interface_, DNSServiceErrorType error, const char* fullname, uint16_t type, uint16_t class_, uint16_t datalen, const void* data, uint32_t ttl, void* userdata) 
-	{
-	}
+	conf0_callback_begin(query_callback, uint32_t interface_, DNSServiceErrorType error, const char* fullname, uint16_t type, uint16_t class_, uint16_t datalen, const void* data, uint32_t ttl)
+		luaM_setfield(-1, unsigned, interface_, interface_)
+		luaM_setfield(-1, string, fullname, fullname)
+		luaM_setfield(-1, unsigned, type, type)
+		luaM_setfield(-1, unsigned, class_, class_)
+		luaM_setfield(-1, unsigned, datalen, datalen)
+		luaM_setfield(-1, lstring, data, (const char*)data, datalen)
+	conf0_callback_end(query_callback)
 
-	//BEGINFUNC(conf0_query_alloc, conf0_query_callback, const char* fullname, unsigned short type, unsigned short class_)
-	//ENDFUNC(DNSServiceQueryRecord, fullname, type, class_, query_callback)
-
-	//FREEPROC(conf0_query_free)
+	luaM_func_begin(query)
+		luaM_opt_param(unsigned, flags, 0)
+		luaM_opt_param(unsigned, interface_, 0)
+		luaM_reqd_param(string, fullname)
+		luaM_reqd_param(unsigned, type)
+		luaM_reqd_param(unsigned, class_)
+		luaM_reqd_param(function, callback)
+		luaM_return_userdata(context_t, context, L, callback)
+		conf0_call_dns_service(DNSServiceQueryRecord, &context->ref, (DNSServiceFlags)flags, interface_, fullname, type, class_, query_callback, context)
+	luaM_func_end
 
 	/* REGISTER */
 
@@ -215,7 +212,7 @@ static const struct luaL_Reg lib[] =
 	{"savestack", luaM_save_stack},
 	{"browse", browse},
 	{"resolve", resolve},
-	//{"query", query},
+	{"query", query},
 	//{"register", register_},
 	{"iterate", iterate},
     {nullptr, nullptr},
