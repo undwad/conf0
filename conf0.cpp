@@ -45,7 +45,9 @@ luaM_func_begin(test)
 	luaM_reqd_param(integer, p3)
 	luaM_reqd_param(unsigned, p4)
 	luaM_reqd_param(string, p5)
-	printf("%d %f %d %d %s\n",p1,p2,p3,p4,p5);
+	luaM_reqd_param(table, p6)
+	luaM_reqd_param(function, p7)
+	printf("%d %f %d %d %s %d %d\n",p1,p2,p3,p4,p5,p6,p7);
 	luaM_return(boolean, true)
 	luaM_return(integer, 123)
 	luaM_return(number, 123.321)

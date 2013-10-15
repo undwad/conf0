@@ -24,6 +24,15 @@
 #define lua_isinteger lua_isnumber
 #define lua_isunsigned lua_isnumber
 
+static int lua_toregistry(lua_State* L, int idx)
+{
+	lua_pushvalue(L, idx); 
+	return luaL_ref(L, LUA_REGISTRYINDEX);
+}
+
+#define lua_tofunction(L, IDX) lua_toregistry(L, IDX)
+#define lua_totable(L, IDX) lua_toregistry(L, IDX)
+
 #define luaM_type_boolean bool
 #define luaM_type_number double
 #define luaM_type_integer int
@@ -31,6 +40,8 @@
 #define luaM_type_string const char*
 #define luaM_type_userdata void*
 #define luaM_type_cfunction lua_CFunction
+#define luaM_type_function int
+#define luaM_type_table int
 
 #define luaM_reqd_param(TYPE, NAME) \
 	lua_getfield(L, 1, #NAME); \
@@ -42,8 +53,6 @@
 	luaM_type_##TYPE NAME = lua_to##TYPE(L, -1); \
 	lua_pop(L, 1); 
 
-	
-
 #define luaM_return(TYPE, ...) \
 	lua_push##TYPE(L, __VA_ARGS__); \
 	result++;
@@ -51,22 +60,6 @@
 #define luaM_func_end \
 		return result; \
 	}
-
-//lua_toboolean lua_isboolean
-//lua_tonumber lua_isnumber
-//lua_tointeger
-//lua_tounsigned
-//lua_tostring lua_isstring
-//lua_touserdata lua_islightuserdata lua_isuserdata
-//lua_topointer 
-//lua_tocfunction lua_iscfunction
-//lua_tolstring
-
-//lua_isnil lua_isnone lua_isnoneornil
-
-
-//lua_isfunction lua_istable
-
 
 #endif // _LUA_MISC_H__
 
