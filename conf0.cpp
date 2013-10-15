@@ -62,13 +62,6 @@ luaM_func_end
 #	pragma comment(lib, "dnssd.lib")
 #	pragma comment(lib, "ws2_32.lib")
 
-	struct userdata_t
-	{
-		DNSServiceRef ref;
-		void* callback;
-		void* userdata;
-		userdata_t(void* callback_, void* userdata_) : ref(nullptr), callback(callback_), userdata(userdata_) { }
-	};
 
 //#	define BEGINFUNC(FUNC, CALLBACK, ...) \
 //	void* FUNC(void* common_context, unsigned int flags, unsigned int interface_, __VA_ARGS__, CALLBACK callback, void* userdata) \
@@ -84,15 +77,22 @@ luaM_func_end
 //		return nullptr; \
 //	}
 
-#define FREEPROC(FUNC) \
-	void FUNC(void* userdata) \
-	{  \
-		userdata_t* userdata_ = (userdata_t*)userdata; \
-		DNSServiceRefDeallocate(userdata_->ref); \
-		delete userdata_; \
-	}
-
 	/* CONNECT */
+
+	struct context_t
+	{
+		lua_State* L;
+		int callback;
+		DNSServiceRef ref;
+		context_t(lua_State* L_, int callback_) : L(L_), callback(callback_), ref(nullptr) { }
+		~context_t() 
+		{ 
+			if(LUA_NOREF != callback)
+				luaL_unref(L, LUA_REGISTRYINDEX, callback);
+			if(ref)
+				DNSServiceRefDeallocate(ref); 
+		}
+	};
 
 	//void* conf0_common_alloc() { return (void*)-1; }
 	//void conf0_common_free(void* common_context) { }
@@ -133,9 +133,26 @@ luaM_func_end
 
 	/* BROWSE */
 
+	luaM__gc(context_t)
+
 	void DNSSD_API browse_callback(DNSServiceRef ref, DNSServiceFlags flags, uint32_t interface_, DNSServiceErrorType error, const char* name, const char* type, const char* domain, void* userdata) 
 	{
 	}
+
+	luaM_func_begin(browse)
+		luaM_opt_param(unsigned, flags, 0)
+		luaM_opt_param(unsigned, interface_, 0)
+		luaM_reqd_param(string, type)
+		luaM_opt_param(string, domain, nullptr)
+		luaM_reqd_param(function, callback)
+		luaM_return_userdata(context_t, context, L, callback)
+		int error = DNSServiceBrowse(&context->ref, (DNSServiceFlags)flags, interface_, type, domain, browse_callback, context);
+		if(kDNSServiceErr_NoError != error)
+		{
+			delete context;
+			return luaL_error(L, "DNSServiceBrowse() failed with error %d", error);
+		}
+	luaM_func_end
 
 	//BEGINFUNC(conf0_browser_alloc, conf0_browser_callback, const char* type, const char* domain)
 	//ENDFUNC(DNSServiceBrowse, type, domain, browser_callback)
@@ -196,7 +213,7 @@ luaM_func_end
 static const struct luaL_Reg lib[] = 
 {
 	{"test", test},
-	//{"common", common},
+	{"browse", browse},
 	//{"enumdomain", enumdomain},
 	//{"browse", browse},
 	//{"resolve", resolve},

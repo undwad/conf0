@@ -75,12 +75,11 @@ static int lua_toregistry(lua_State* L, int idx)
 	lua_push##TYPE(L, __VA_ARGS__); \
 	result++;
 
-#define luaM_return_userdata(TYPE, ...) \
-	TYPE* ptr = (TYPE*) lua_newuserdata(L, sizeof(TYPE)); \
-	ptr->TYPE(__VA_ARGS__); \
+#define luaM_return_userdata(TYPE, NAME, ...) \
+	TYPE* NAME = (TYPE*)lua_newuserdata(L, sizeof(TYPE)); \
+	NAME->TYPE::TYPE(__VA_ARGS__); \
 	lua_newtable(L); \
-	lua_pushlightuserdata(L, dctor); \
-	lua_pushcclosure(L, TYPE##__gc, 1); \
+	lua_pushcfunction(L, TYPE##__gc); \
 	lua_setfield(L, -2, "__gc"); \
 	lua_setmetatable(L, -2); \
 	result++;
