@@ -39,7 +39,7 @@ local browser = conf0.browse{type = '_http._tcp', callback = function(i)
 		io.write('.')
 		for k,v in pairs(j) do i[k] = v end
 		i.port = opaque2port(i.opaqueport)
-		local query = conf0.query{fullname = j.hosttarget, type=1, class_=1, callback = function(k)
+		local query = conf0.query{fullname = j.hosttarget, type = conf0.types.A, class_ = conf0.classes.IN, callback = function(k)
 			io.write('.')
 			i.ip = inet_ntoa(k.data)
 		end}

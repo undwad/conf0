@@ -203,23 +203,125 @@
 		conf0_call_dns_service(DNSServiceRegister, &context->ref, (DNSServiceFlags)flags, interface_, name, type, domain, host, port, textlen, text, register_callback, context)
 	luaM_func_end
 
-	void reg_flags(lua_State *L) 
+#	define conf0_reg_flag(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceFlags##NAME) 
+	void conf0_reg_flags(lua_State *L) 
 	{
-		luaM_setfield(-1, integer, more_comming, kDNSServiceFlagsMoreComing) // browse callback | resolve callback | query callback
-		luaM_setfield(-1, integer, add, kDNSServiceFlagsAdd) // browse callback | query callback | register callback
-		luaM_setfield(-1, integer, force_multicast, kDNSServiceFlagsForceMulticast) // resolve | query
-		luaM_setfield(-1, integer, long_lived_query, kDNSServiceFlagsLongLivedQuery) // query
+		conf0_reg_flag(MoreComing) // browse callback | resolve callback | query callback
+		conf0_reg_flag(Add) // browse callback | query callback | register callback
+		conf0_reg_flag(ForceMulticast) // resolve | query
+		conf0_reg_flag(LongLivedQuery) // query
 	}
 
-	void reg_classes(lua_State *L) // query | query callback
+#	undef IN
+#	define conf0_reg_class(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceClass_##NAME) 
+	void conf0_reg_classes(lua_State *L) // query | query callback
 	{
-		luaM_setfield(-1, integer, class_in, kDNSServiceClass_IN) 
+		conf0_reg_class(IN)
 	}
 
-	void reg_types(lua_State *L) // query | query callback
+#	define conf0_reg_type(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceType_##NAME) 
+	void conf0_reg_types(lua_State *L) // query | query callback
 	{
-		luaM_setfield(-1, integer, PTR, kDNSServiceType_PTR) 
-		luaM_setfield(-1, integer, SRV, kDNSServiceType_SRV)
+		conf0_reg_type(A)
+		conf0_reg_type(NS)
+		conf0_reg_type(MD)
+		conf0_reg_type(MF)
+		conf0_reg_type(CNAME)
+		conf0_reg_type(SOA)
+		conf0_reg_type(MB)
+		conf0_reg_type(MG)
+		conf0_reg_type(MR)
+		conf0_reg_type(WKS)
+		conf0_reg_type(PTR)
+		conf0_reg_type(HINFO)
+		conf0_reg_type(MINFO)
+		conf0_reg_type(MX)
+		conf0_reg_type(TXT)
+		conf0_reg_type(RP)
+		conf0_reg_type(AFSDB)
+		conf0_reg_type(X25)
+		conf0_reg_type(ISDN)
+		conf0_reg_type(RT)
+		conf0_reg_type(NSAP)
+		conf0_reg_type(NSAP_PTR)
+		conf0_reg_type(SIG)
+		conf0_reg_type(KEY)
+		conf0_reg_type(PX)
+		conf0_reg_type(GPOS)
+		conf0_reg_type(AAAA)
+		conf0_reg_type(LOC)
+		conf0_reg_type(NXT)
+		conf0_reg_type(EID)
+		conf0_reg_type(NIMLOC)
+		conf0_reg_type(SRV)
+		conf0_reg_type(ATMA)
+		conf0_reg_type(NAPTR)
+		conf0_reg_type(KX)
+		conf0_reg_type(CERT)
+		conf0_reg_type(A6)
+		conf0_reg_type(DNAME)
+		conf0_reg_type(SINK)
+		conf0_reg_type(OPT)
+		conf0_reg_type(APL)
+		conf0_reg_type(DS)
+		conf0_reg_type(SSHFP)
+		conf0_reg_type(IPSECKEY)
+		conf0_reg_type(RRSIG)
+		conf0_reg_type(NSEC)
+		conf0_reg_type(DNSKEY)
+		conf0_reg_type(DHCID)
+		conf0_reg_type(NSEC3)
+		conf0_reg_type(NSEC3PARAM)
+		conf0_reg_type(HIP)
+		conf0_reg_type(SPF)
+		conf0_reg_type(UINFO)
+		conf0_reg_type(UID)
+		conf0_reg_type(GID)
+		conf0_reg_type(UNSPEC)
+		conf0_reg_type(TKEY)
+		conf0_reg_type(TSIG)
+		conf0_reg_type(IXFR)
+		conf0_reg_type(AXFR)
+		conf0_reg_type(MAILB)
+		conf0_reg_type(MAILA)
+		conf0_reg_type(ANY)
+	}
+
+#	define conf0_reg_error(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceErr_##NAME) 
+	void conf0_reg_errors(lua_State *L) 
+	{
+		conf0_reg_error(NoError)
+		conf0_reg_error(Unknown)
+		conf0_reg_error(NoSuchName)
+		conf0_reg_error(NoMemory)
+		conf0_reg_error(BadParam)
+		conf0_reg_error(BadReference)
+		conf0_reg_error(BadState)
+		conf0_reg_error(BadFlags)
+		conf0_reg_error(Unsupported)
+		conf0_reg_error(NotInitialized)
+		conf0_reg_error(AlreadyRegistered)
+		conf0_reg_error(NameConflict)
+		conf0_reg_error(Invalid)
+		conf0_reg_error(Firewall)
+		conf0_reg_error(Incompatible)
+		conf0_reg_error(BadInterfaceIndex)
+		conf0_reg_error(Refused)
+		conf0_reg_error(NoSuchRecord)
+		conf0_reg_error(NoAuth)
+		conf0_reg_error(NoSuchKey)
+		conf0_reg_error(NATTraversal)
+		conf0_reg_error(DoubleNAT)
+		conf0_reg_error(BadTime)
+		conf0_reg_error(BadSig)
+		conf0_reg_error(BadKey)
+		conf0_reg_error(Transient)
+		conf0_reg_error(ServiceNotRunning)
+		conf0_reg_error(NATPortMappingUnsupported)
+		conf0_reg_error(NATPortMappingDisabled)
+		conf0_reg_error(NoRouter)
+		conf0_reg_error(PollingMode)
+		conf0_reg_error(Timeout)
 	}
 
 #elif defined(LINUX)
@@ -249,20 +351,20 @@ static const struct luaL_Reg lib[] =
     {nullptr, nullptr},
 };
 
+#define conf0_reg_enum(NAME) \
+	lua_newtable(L); \
+	conf0_reg_##NAME(L); \
+	lua_setfield(L, -2, #NAME);
+
 extern "C"
 {
 	LUAMOD_API int luaopen_conf0(lua_State *L) 
 	{
 		luaL_newlib (L, lib);
-		lua_newtable(L);
-		reg_flags(L);
-		lua_setfield(L, -2, "flags");
-		lua_newtable(L);
-		reg_classes(L);
-		lua_setfield(L, -2, "classes");
-		lua_newtable(L);
-		reg_types(L);
-		lua_setfield(L, -2, "types");
+		conf0_reg_enum(flags)
+		conf0_reg_enum(classes)
+		conf0_reg_enum(types)
+		conf0_reg_enum(errors)
 		lua_setglobal(L, "conf0");
 		return 1;
 	}
