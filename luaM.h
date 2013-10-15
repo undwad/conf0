@@ -19,7 +19,8 @@
 	{ \
 		if(!lua_isuserdata(L, 1)) \
 			return luaL_error(L, "single __gc parameter must be of type userdata"); \
-		delete (TYPE*)lua_touserdata(L, 1); \
+		TYPE* ptr = (TYPE*)lua_touserdata(L, 1); \
+		ptr->TYPE::~TYPE(); \
 		return 0; \
 	}
 
@@ -57,7 +58,7 @@ static int lua_toregistry(lua_State* L, int idx)
 	if(!lua_is##TYPE(L, -1)) \
 	{ \
 		lua_pop(L, 1); \
-		return luaL_error(L, "required parameter " #NAME " must be of type " #TYPE); \
+		return luaL_error(L, "required parameter '" #NAME "' must be of type " #TYPE); \
 	} \
 	luaM_type_##TYPE NAME = lua_to##TYPE(L, -1); \
 	lua_pop(L, 1); 
