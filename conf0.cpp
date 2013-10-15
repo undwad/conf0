@@ -62,6 +62,21 @@ luaM_func_end
 #	pragma comment(lib, "dnssd.lib")
 #	pragma comment(lib, "ws2_32.lib")
 
+#	define conf0_callback_begin(CALLBACK, ...) \
+	void DNSSD_API CALLBACK(DNSServiceRef ref, DNSServiceFlags flags, __VA_ARGS__, void* userdata) \
+	{ \
+		context_t* context = (context_t*)userdata; \
+		lua_State *L = context->L; \
+		lua_rawgeti(L, LUA_REGISTRYINDEX, context->callback); \
+		lua_newtable(L);
+
+#	define conf0_callback_end(CALLBACK) \
+		if(lua_pcall(L, 1, 0, 0)) \
+		{ \
+			fprintf(stderr, #CALLBACK " error %s\n", lua_tostring(L, -1)); \
+			lua_pop(L, 1); \
+		} \
+	}
 
 //#	define BEGINFUNC(FUNC, CALLBACK, ...) \
 //	void* FUNC(void* common_context, unsigned int flags, unsigned int interface_, __VA_ARGS__, CALLBACK callback, void* userdata) \
@@ -132,23 +147,13 @@ luaM_func_end
 
 	luaM__gc(context_t)
 
-	void DNSSD_API browse_callback(DNSServiceRef ref, DNSServiceFlags flags, uint32_t interface_, DNSServiceErrorType error, const char* name, const char* type, const char* domain, void* userdata) 
-	{
-		context_t* context = (context_t*)userdata;
-		lua_State *L = context->L;
-		lua_rawgeti(L, LUA_REGISTRYINDEX, context->callback);
-		lua_newtable(L);
+	conf0_callback_begin(browse_callback, uint32_t interface_, DNSServiceErrorType error, const char* name, const char* type, const char* domain)
 		luaM_setfield(-1, unsigned, flags, flags)
 		luaM_setfield(-1, unsigned, interface, interface_)
 		luaM_setfield(-1, string, name, name)
 		luaM_setfield(-1, string, type, type)
 		luaM_setfield(-1, string, domain, domain)
-		if(lua_pcall(L, 1, 0, 0)) 
-		{ 
-			fprintf(stderr, "browse callback error %s\n", lua_tostring(L, -1)); 
-			lua_pop(L, 1); 
-		}
-	}
+	conf0_callback_end(browse_callback)
 
 	luaM_func_begin(browse)
 		luaM_opt_param(unsigned, flags, 0)
