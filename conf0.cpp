@@ -182,14 +182,26 @@
 
 	/* REGISTER */
 
-	void DNSSD_API register_callback(DNSServiceRef ref, DNSServiceFlags flags, DNSServiceErrorType error, const char* name, const char* type, const char* domain, void* userdata)
-	{
-	}
+	conf0_callback_begin(register_callback, DNSServiceErrorType error, const char* name, const char* type, const char* domain)
+		luaM_setfield(-1, string, name, name)
+		luaM_setfield(-1, string, type, type)
+		luaM_setfield(-1, string, domain, domain)
+	conf0_callback_end(register_callback)
 
-	//BEGINFUNC(conf0_register_alloc, conf0_register_callback, const char* name, const char* type, const char* domain, const char* host, unsigned short port, unsigned short textlen, const void* text)
-	//ENDFUNC(DNSServiceRegister, name, type, domain, host, port, textlen, text, register_callback)
-
-	//FREEPROC(conf0_register_free)
+	luaM_func_begin(register_)
+		luaM_opt_param(unsigned, flags, 0)
+		luaM_opt_param(unsigned, interface_, 0)
+		luaM_opt_param(string, name, nullptr)
+		luaM_reqd_param(string, type)
+		luaM_opt_param(string, domain, nullptr)
+		luaM_opt_param(string, host, nullptr)
+		luaM_opt_param(unsigned, port, 0)
+		luaM_opt_param(unsigned, textlen, 0)
+		luaM_opt_param(string, text, nullptr)
+		luaM_reqd_param(function, callback)
+		luaM_return_userdata(context_t, context, L, callback)
+		conf0_call_dns_service(DNSServiceRegister, &context->ref, (DNSServiceFlags)flags, interface_, name, type, domain, host, port, textlen, text, register_callback, context)
+	luaM_func_end
 
 #elif defined(LINUX)
 
@@ -213,7 +225,7 @@ static const struct luaL_Reg lib[] =
 	{"browse", browse},
 	{"resolve", resolve},
 	{"query", query},
-	//{"register", register_},
+	{"register_", register_},
 	{"iterate", iterate},
     {nullptr, nullptr},
 };

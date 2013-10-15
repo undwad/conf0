@@ -22,8 +22,8 @@ function opaque2port(port)
 	return byte(bytes, 4) * 256 + byte(bytes, 3)
 end
 
---local me, error, code = conf0.register(common, "_http._tcp", function(res) print(prettytostring(res)) end, 'conf0test', nil, port2opaque(5500))
---if me then conf0.iterate(me) else print(error, code) end
+local restrator = conf0.register_{type = "_http._tcp", name = 'conf0test', port = 5500, callback = function(res) print(prettytostring(res)) end}
+conf0.iterate{ref=restrator}
 
 local items = {}
 
