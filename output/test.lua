@@ -30,12 +30,8 @@ function conf0.wait(client, error, code)
 	else print(error, code)	end
 end
 
-common = conf0.common()
-
-conf0.once(conf0.enumdomain(common, function(res) print(res) end)) 
-
-local me, error, code = conf0.register(common, "_http._tcp", function(res) print(prettytostring(res)) end, 'conf0test', nil, port2opaque(5500))
-if me then conf0.iterate(me) else print(error, code) end
+--local me, error, code = conf0.register(common, "_http._tcp", function(res) print(prettytostring(res)) end, 'conf0test', nil, port2opaque(5500))
+--if me then conf0.iterate(me) else print(error, code) end
 
 local items = {}
 

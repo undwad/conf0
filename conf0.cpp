@@ -68,7 +68,8 @@ luaM_func_end
 		context_t* context = (context_t*)userdata; \
 		lua_State *L = context->L; \
 		lua_rawgeti(L, LUA_REGISTRYINDEX, context->callback); \
-		lua_newtable(L);
+		lua_newtable(L); \
+		luaM_setfield(-1, unsigned, flags, flags)
 
 #	define conf0_callback_end(CALLBACK) \
 		if(lua_pcall(L, 1, 0, 0)) \
@@ -76,6 +77,14 @@ luaM_func_end
 			fprintf(stderr, #CALLBACK " error %s\n", lua_tostring(L, -1)); \
 			lua_pop(L, 1); \
 		} \
+	}
+
+# define conf0_call_dns_service(FUNC, ...) \
+	int error = FUNC(__VA_ARGS__); \
+	if(kDNSServiceErr_NoError != error) \
+	{ \
+		delete context; \
+		return luaL_error(L, #FUNC "() failed with error %d", error); \
 	}
 
 //#	define BEGINFUNC(FUNC, CALLBACK, ...) \
@@ -109,8 +118,7 @@ luaM_func_end
 		}
 	};
 
-	//void* conf0_common_alloc() { return (void*)-1; }
-	//void conf0_common_free(void* common_context) { }
+	luaM__gc(context_t)
 
 	luaM_func_begin(iterate)
 		luaM_reqd_param(userdata, ref)
@@ -145,10 +153,7 @@ luaM_func_end
 
 	/* BROWSE */
 
-	luaM__gc(context_t)
-
 	conf0_callback_begin(browse_callback, uint32_t interface_, DNSServiceErrorType error, const char* name, const char* type, const char* domain)
-		luaM_setfield(-1, unsigned, flags, flags)
 		luaM_setfield(-1, unsigned, interface, interface_)
 		luaM_setfield(-1, string, name, name)
 		luaM_setfield(-1, string, type, type)
@@ -162,29 +167,30 @@ luaM_func_end
 		luaM_opt_param(string, domain, nullptr)
 		luaM_reqd_param(function, callback)
 		luaM_return_userdata(context_t, context, L, callback)
-		int error = DNSServiceBrowse(&context->ref, (DNSServiceFlags)flags, interface_, type, domain, browse_callback, context);
-		if(kDNSServiceErr_NoError != error)
-		{
-			delete context;
-			return luaL_error(L, "DNSServiceBrowse() failed with error %d", error);
-		}
+		conf0_call_dns_service(DNSServiceBrowse, &context->ref, (DNSServiceFlags)flags, interface_, type, domain, browse_callback, context)
 	luaM_func_end
-
-	//BEGINFUNC(conf0_browser_alloc, conf0_browser_callback, const char* type, const char* domain)
-	//ENDFUNC(DNSServiceBrowse, type, domain, browser_callback)
-
-	//FREEPROC(conf0_browser_free)
 
 	/* RESOLVE */
 
-	void DNSSD_API resolve_callback(DNSServiceRef ref, DNSServiceFlags flags, uint32_t interface_, DNSServiceErrorType error, const char* fullname, const char* hosttarget, uint16_t opaqueport, uint16_t textlen, const unsigned char* text, void* userdata) 
-	{
-	}
+	conf0_callback_begin(resolve_callback, uint32_t interface_, DNSServiceErrorType error, const char* fullname, const char* hosttarget, uint16_t opaqueport, uint16_t textlen, const unsigned char* text)
+		luaM_setfield(-1, unsigned, interface, interface_)
+		luaM_setfield(-1, string, fullname, fullname)
+		luaM_setfield(-1, string, hosttarget, hosttarget)
+		luaM_setfield(-1, unsigned, opaqueport, opaqueport)
+		luaM_setfield(-1, unsigned, textlen, textlen)
+		luaM_setfield(-1, string, text, (const char*)text)
+	conf0_callback_end(resolve_callback)
 
-	//BEGINFUNC(conf0_resolver_alloc, conf0_resolver_callback, const char* name, const char* type, const char* domain)
-	//ENDFUNC(DNSServiceResolve, name, type, domain, resolver_callback)
-
-	//FREEPROC(conf0_resolver_free)
+	luaM_func_begin(resolve)
+		luaM_opt_param(unsigned, flags, 0)
+		luaM_opt_param(unsigned, interface_, 0)
+		luaM_reqd_param(string, name)
+		luaM_reqd_param(string, type)
+		luaM_reqd_param(string, domain)
+		luaM_reqd_param(function, callback)
+		luaM_return_userdata(context_t, context, L, callback)
+		conf0_call_dns_service(DNSServiceResolve, &context->ref, (DNSServiceFlags)flags, interface_, name, type, domain, resolve_callback, context)
+	luaM_func_end
 
 	/* QUERY */
 
@@ -230,9 +236,7 @@ static const struct luaL_Reg lib[] =
 {
 	{"test", test},
 	{"browse", browse},
-	//{"enumdomain", enumdomain},
-	//{"browse", browse},
-	//{"resolve", resolve},
+	{"resolve", resolve},
 	//{"query", query},
 	//{"register", register_},
 	{"iterate", iterate},
