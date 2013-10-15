@@ -22,13 +22,15 @@ function opaque2port(port)
 	return byte(bytes, 4) * 256 + byte(bytes, 3)
 end
 
-local restrator = conf0.register_{type = "_http._tcp", name = 'conf0test', port = 5500, callback = function(res) print(prettytostring(res)) end}
+port2opaque = opaque2port
+
+local restrator = conf0.register_{type = "_http._tcp", name = 'conf0test', port = port2opaque(5500), callback = function(res) print(prettytostring(res)) end}
 conf0.iterate{ref=restrator}
 
 local items = {}
 
 -- _http._tcp _rtsp._tcp
-local browser = conf0.browse{type='_http._tcp', callback=function(i) 
+local browser = conf0.browse{type = '_http._tcp', callback = function(i) 
 	io.write('.')
 	items[#items + 1] = i
 	local resolver = conf0.resolve{name = i.name, type = i.type, domain = i.domain, callback=function(j)
