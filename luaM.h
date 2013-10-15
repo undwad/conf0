@@ -91,7 +91,7 @@ static int lua_toregistry(lua_State* L, int idx)
 
 #define luaM_setfield(IDX, TYPE, NAME, ...) \
 	lua_push##TYPE(L, __VA_ARGS__); \
-	lua_setfield(L, IDX, #NAME)
+	lua_setfield(L, IDX < 0 ? IDX - 1 : IDX, #NAME);
 
 #endif // _LUA_MISC_H__
 

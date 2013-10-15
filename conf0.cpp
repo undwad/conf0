@@ -134,6 +134,20 @@ luaM_func_end
 
 	void DNSSD_API browse_callback(DNSServiceRef ref, DNSServiceFlags flags, uint32_t interface_, DNSServiceErrorType error, const char* name, const char* type, const char* domain, void* userdata) 
 	{
+		context_t* context = (context_t*)userdata;
+		lua_State *L = context->L;
+		lua_rawgeti(L, LUA_REGISTRYINDEX, context->callback);
+		lua_newtable(L);
+		luaM_setfield(-1, unsigned, flags, flags)
+		luaM_setfield(-1, unsigned, interface, interface_)
+		luaM_setfield(-1, string, name, name)
+		luaM_setfield(-1, string, type, type)
+		luaM_setfield(-1, string, domain, domain)
+		if(lua_pcall(L, 1, 0, 0)) 
+		{ 
+			fprintf(stderr, "browse callback error %s\n", lua_tostring(L, -1)); 
+			lua_pop(L, 1); 
+		}
 	}
 
 	luaM_func_begin(browse)
