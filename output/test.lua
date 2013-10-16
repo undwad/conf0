@@ -36,15 +36,18 @@ local items = {}
 -- _http._tcp _rtsp._tcp
 local browser = conf0.browse{type = '_rtsp._tcp', callback = function(i) 
 	io.write('.')
+	print('BROWSER', i)
 	items[#items + 1] = i
 	if i.name and i.type and i.domain then
 		local resolver = conf0.resolve{name = i.name, type = i.type, domain = i.domain, callback=function(j)
 			io.write('.')
+			print('RESOLVER', j)
 			for k,v in pairs(j) do i[k] = v end
 			i.port = opaque2port(i.opaqueport)
 			if j.hosttarget then
 				local query = conf0.query{fullname = j.hosttarget, type = conf0.types.A, class_ = conf0.classes.IN, callback = function(k)
 					io.write('.')
+					print('QUERY', k)
 					i.ip = inet_ntoa(k.data)
 				end}
 				conf0.iterate{ref=query}
