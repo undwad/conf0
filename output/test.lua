@@ -28,22 +28,22 @@ port2opaque = opaque2port
 
 print(prettytostring(conf0))
 
---local registrator = conf0.register_{client = client, type = "_http._tcp", name = 'conf0test', port = port2opaque(5500), callback = function(res) print(prettytostring(res)) end}
+--local registrator = conf0.register_{type = "_http._tcp", name = 'conf0test', port = port2opaque(5500), callback = function(res) print(prettytostring(res)) end}
 --conf0.iterate{ref=registrator}
 
 local items = {}
 
 -- _http._tcp _rtsp._tcp
-local browser = conf0.browse{client = client, type = '_rtsp._tcp', callback = function(i) 
+local browser = conf0.browse{type = '_rtsp._tcp', callback = function(i) 
 	io.write('.')
 	items[#items + 1] = i
 	if i.name and i.type and i.domain then
-		local resolver = conf0.resolve{client = client, name = i.name, type = i.type, domain = i.domain, callback=function(j)
+		local resolver = conf0.resolve{name = i.name, type = i.type, domain = i.domain, callback=function(j)
 			io.write('.')
 			for k,v in pairs(j) do i[k] = v end
 			i.port = opaque2port(i.opaqueport)
 			if j.hosttarget then
-				local query = conf0.query{client = client, fullname = j.hosttarget, type = conf0.types.A, class_ = conf0.classes.IN, callback = function(k)
+				local query = conf0.query{fullname = j.hosttarget, type = conf0.types.A, class_ = conf0.classes.IN, callback = function(k)
 					io.write('.')
 					i.ip = inet_ntoa(k.data)
 				end}
