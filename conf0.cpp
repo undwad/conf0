@@ -335,30 +335,31 @@
 
 	static void client_callback(AvahiClient *c, AvahiClientState state, AVAHI_GCC_UNUSED void * userdata) { }
 
-#   define avahi_alloc_client(CONTEXT) \
+#   define avahi_alloc_client() \
 		luaM_opt_param(userdata, ref, nullptr) \
 		if(ref) \
 		{ \
-			CONTEXT->poll = ((context_t*)ref)->poll; \
-			CONTEXT->client = ((context_t*)ref)->client; \
-			CONTEXT->copy = true; \
+			printf("%x %x %x\n", ref, ((context_t*)ref)->poll, ((context_t*)ref)->client); \
+			context->poll = ((context_t*)ref)->poll; \
+			context->client = ((context_t*)ref)->client; \
+			context->copy = true; \
 		} \
-        else if(CONTEXT->poll = avahi_simple_poll_new()) \
+        else if(context->poll = avahi_simple_poll_new()) \
         { \
             int error; \
-            if(CONTEXT->client = avahi_client_new(avahi_simple_poll_get(CONTEXT->poll), flags, client_callback, context, &error)) \
+            if(context->client = avahi_client_new(avahi_simple_poll_get(context->poll), flags, client_callback, context, &error)) \
             { \
-				CONTEXT->copy = false; \
+				context->copy = false; \
             } \
             else \
 			{ \
-				delete CONTEXT; \
+				delete context; \
 				return luaL_error(L, avahi_strerror(error)); \
 			} \
         } \
 		else \
 		{ \
-			delete CONTEXT; \
+			delete context; \
 			return luaL_error(L, "avahi_simple_poll_new() failed"); \
 		}
 
@@ -411,7 +412,7 @@
 		luaM_opt_param(integer, flags, 0)
 		luaM_reqd_param(function, callback)
 		luaM_return_userdata(browse_context_t, init, context, L, callback)
-		avahi_alloc_client(context)
+		avahi_alloc_client()
 		conf0_call_dns_service(browser, avahi_service_browser_new, context->client, (AvahiIfIndex)interface_, (AvahiProtocol)protocol, type, domain, (AvahiLookupFlags)flags, browse_callback, context)
 	luaM_func_end
 
@@ -458,7 +459,7 @@
 		luaM_opt_param(integer, flags, 0)
 		luaM_reqd_param(function, callback)
 		luaM_return_userdata(resolve_context_t, init, context, L, callback)
-		avahi_alloc_client(context)
+		avahi_alloc_client()
 		conf0_call_dns_service(resolver, avahi_service_resolver_new, context->client, (AvahiIfIndex)interface_, (AvahiProtocol)protocol, name, type, domain, (AvahiProtocol)aprotocol, (AvahiLookupFlags)flags, resolve_callback, context)
 	luaM_func_end
 
@@ -496,7 +497,7 @@
 		luaM_opt_param(integer, flags, 0)
 		luaM_reqd_param(function, callback)
 		luaM_return_userdata(query_context_t, init, context, L, callback)
-		avahi_alloc_client(context)
+		avahi_alloc_client()
 		conf0_call_dns_service(browser, avahi_record_browser_new, context->client, (AvahiIfIndex)interface_, (AvahiProtocol)protocol, fullname, type, class_, (AvahiLookupFlags)flags, query_callback, context)
 	luaM_func_end
 
