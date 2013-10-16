@@ -28,6 +28,13 @@ port2opaque = opaque2port
 
 print(prettytostring(conf0))
 
+	local resolver = conf0.resolve{name = 'axis-00408cafc3b2.local.', type = '_rtsp._tcp', domain = 'local.', callback = function(j)
+		io.write('.')
+		print('RESOLVER', j)
+	end}
+
+os.execute('pause')
+
 --local registrator = conf0.register_{type = "_http._tcp", name = 'conf0test', port = port2opaque(5500), callback = function(res) print(prettytostring(res)) end}
 --conf0.iterate{ref=registrator}
 
