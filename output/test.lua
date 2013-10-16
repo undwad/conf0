@@ -49,10 +49,10 @@ local browser = conf0.browse{client = client, type = '_rtsp._tcp', callback = fu
 					io.write('.')
 					i.ip = inet_ntoa(k.data)
 				end}
-				conf0.iterate{ref=query}
+				--conf0.iterate{ref=query}
 			end
 		end}
-		conf0.iterate{ref=resolver}
+		--conf0.iterate{ref=resolver}
 	end
 end}
 
