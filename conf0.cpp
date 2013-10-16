@@ -271,6 +271,8 @@
 
 	void conf0_reg_states(lua_State *L) { }
 
+	void conf0_reg_interfaces(lua_State *L) { luaM_setfield(-1, integer, "UNSPEC", 0) }
+
 #elif defined(LINUX)
 
 #   include <avahi-client/client.h>
@@ -426,7 +428,7 @@
 	luaM_func_begin(browse)
 		luaM_reqd_param(userdata, client)
 		client_context_t* client_context = (client_context_t*)client;
-		luaM_opt_param(integer, interface_, 0)
+		luaM_opt_param(integer, interface_, -1)
 		luaM_opt_param(integer, protocol, AVAHI_PROTO_UNSPEC)
 		luaM_reqd_param(string, type)
 		luaM_opt_param(string, domain, nullptr)
@@ -584,6 +586,8 @@
         conf0_reg_state(FAILURE)
         conf0_reg_state(CONNECTING)
 	}
+
+	void conf0_reg_interfaces(lua_State *L) { luaM_setfield(-1, integer, "UNSPEC", AVAHI_IF_UNSPEC) }
 
 #	define kDNSServiceClass_IN        1
 
@@ -764,6 +768,7 @@ extern "C"
 		conf0_reg_enum(protocols)
 		conf0_reg_enum(events)
 		conf0_reg_enum(states)
+		conf0_reg_enum(interfaces)
 		lua_setglobal(L, "conf0");
 		return 1;
 	}
