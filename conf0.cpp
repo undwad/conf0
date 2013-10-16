@@ -38,6 +38,8 @@
 #	pragma comment(lib, "dnssd.lib")
 #	pragma comment(lib, "ws2_32.lib")
 
+	const char* backend = "bonjour";
+
 #	define conf0_callback_begin(CALLBACK, ...) \
 	void DNSSD_API CALLBACK(DNSServiceRef ref, DNSServiceFlags flags, __VA_ARGS__, void* userdata) \
 	{ \
@@ -340,6 +342,10 @@
 		conf0_reg_error(Timeout)
 	}
 
+	void conf0_reg_protocols(lua_State *L) 
+	{
+	}
+
 #elif defined(LINUX)
 
 #   include <avahi-client/client.h>
@@ -348,6 +354,8 @@
 #   include <avahi-common/simple-watch.h>
 #   include <avahi-common/malloc.h>
 #   include <avahi-common/error.h>
+
+	const char* backend = "avahi";
 
 #	define conf0_callback_begin(CALLBACK, ...) \
 	void DNSSD_API CALLBACK(__VA_ARGS__, void* userdata) \
@@ -365,12 +373,12 @@
 		} \
 	}
 
-# define conf0_call_dns_service(FUNC, ...) \
-	int error = FUNC(__VA_ARGS__); \
-	if(kDNSServiceErr_NoError != error) \
+# define conf0_call_dns_service(RESULT, FUNC, ...) \
+	context->RESULT = FUNC(__VA_ARGS__); \
+	if(!context->RESULT) \
 	{ \
 		delete context; \
-		return luaL_error(L, #FUNC "() failed with error %d", error); \
+		return luaL_error(L, avahi_strerror(avahi_client_errno(client_context->client))); \
 	}
 
 	/* CONNECT */
@@ -465,22 +473,27 @@
 		}
 	};
 
-	conf0_callback_begin( AvahiServiceBrowser *browser, AvahiIfIndex interface_, AvahiProtocol protocol, AvahiBrowserEvent event_, const char *name, const char *type, const char *domain, AvahiLookupResultFlags flags)
+	conf0_callback_begin(AvahiServiceBrowser *browser, AvahiIfIndex interface_, AvahiProtocol protocol, AvahiBrowserEvent event_, const char *name, const char *type, const char *domain, AvahiLookupResultFlags flags)
 		luaM_setfield(-1, integer, interface_, interface_)
+		luaM_setfield(-1, integer, protocol, protocol)
 		luaM_setfield(-1, integer, event_, event_)
 		luaM_setfield(-1, string, name, name)
 		luaM_setfield(-1, string, type, type)
 		luaM_setfield(-1, string, domain, domain)
+		luaM_setfield(-1, integer, flags, flags)
 	conf0_callback_end(browse_callback)
 
 	luaM_func_begin(browse)
-		luaM_opt_param(integer, flags, 0)
+		luaM_reqd_param(userdata, client)
+		client_context_t* client_context = (client_context_t*)client;
 		luaM_opt_param(integer, interface_, 0)
+		luaM_opt_param(integer, protocol, AVAHI_PROTO_UNSPEC)
 		luaM_reqd_param(string, type)
 		luaM_opt_param(string, domain, nullptr)
+		luaM_opt_param(integer, flags, 0)
 		luaM_reqd_param(function, callback)
-		luaM_return_userdata(context_t, context, L, callback)
-		conf0_call_dns_service(DNSServiceBrowse, &context->ref, (DNSServiceFlags)flags, interface_, type, domain, browse_callback, context)
+		luaM_return_userdata(browse_context_t, context, L, callback, client_context)
+		conf0_call_dns_service(browser, avahi_service_browser_new, client_context->client, (AvahiIfIndex)interface_, (AvahiProtocol)protocol, type, domain, (AvahiLookupFlags)flags, browse_callback, context)
 	luaM_func_end
 
 	/* RESOLVE */
@@ -685,6 +698,10 @@
 		conf0_reg_error(Timeout)
 	}
 
+	void conf0_reg_protocols(lua_State *L) 
+	{
+	}
+
 #elif defined(OSX)
 #	error incompatible platform
 #else
@@ -713,10 +730,12 @@ extern "C"
 	LUAMOD_API int luaopen_conf0(lua_State *L) 
 	{
 		luaL_newlib (L, lib);
+		luaM_setfield(-1, string, backend, backend)
 		conf0_reg_enum(flags)
 		conf0_reg_enum(classes)
 		conf0_reg_enum(types)
 		conf0_reg_enum(errors)
+		conf0_reg_enum(protocols)
 		lua_setglobal(L, "conf0");
 		return 1;
 	}
