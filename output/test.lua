@@ -24,7 +24,7 @@ end
 
 port2opaque = opaque2port
 
-local client = conf0.connect{}
+local client = conf0.connect{callback = function(res) print(res) end}
 
 local registrator = conf0.register_{client = client, type = "_http._tcp", name = 'conf0test', port = port2opaque(5500), callback = function(res) print(prettytostring(res)) end}
 conf0.iterate{ref=registrator}
