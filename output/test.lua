@@ -26,49 +26,51 @@ end
 
 port2opaque = opaque2port
 
+function execute(params)
+	local ref
+	local callback = params.callback
+	params.callback = function(res)
+		if callback(res) then
+			ref = nil
+		end
+	end
+	ref = params.proc(params)
+	while ref and conf0.iterate{ref=ref} do end
+end
+
 print(prettytostring(conf0))
-
-local resolver = conf0.resolve{name = 'axis-00408cafc3b2.local.', type = '_rtsp._tcp', domain = 'local.', callback = function(j)
-	io.write('.')
-	print('RESOLVER', j)
-end}
-conf0.iterate{ref=resolver}
-
-os.execute('pause')
 
 --local registrator = conf0.register_{type = "_http._tcp", name = 'conf0test', port = port2opaque(5500), callback = function(res) print(prettytostring(res)) end}
 --conf0.iterate{ref=registrator}
 
---[[
+---[[
 
 local items = {}
 
 -- _http._tcp _rtsp._tcp
-local browser = conf0.browse{type = '_rtsp._tcp', callback = function(i) 
+execute{proc = conf0.browse, type = '_rtsp._tcp', callback = function(i) 
 	io.write('.')
-	print('BROWSER', i)
-	items[#items + 1] = i
-	if i.name and i.type and i.domain then
-		local resolver = conf0.resolve{name = i.name, type = i.type, domain = i.domain, callback = function(j)
+	if i.name and i.type and i.domain and not items[i.name] then
+		print('BROWSER', i)
+		items[i.name] = i
+		execute{proc = conf0.resolve, name = i.name, type = i.type, domain = i.domain, callback = function(j)
 			io.write('.')
 			print('RESOLVER', j)
 			for k,v in pairs(j) do i[k] = v end
 			i.port = opaque2port(i.opaqueport)
 			if j.hosttarget then
-				local query = conf0.query{fullname = j.hosttarget, type = conf0.types.A, class_ = conf0.classes.IN, callback = function(k)
+				execute{proc = conf0.query, fullname = j.hosttarget, type = conf0.types.A, class_ = conf0.classes.IN, callback = function(k)
 					io.write('.')
 					print('QUERY', k)
 					i.ip = inet_ntoa(k.data)
+					return true
 				end}
-				conf0.iterate{ref=query}
 			end
+			return true
 		end}
-		conf0.iterate{ref=resolver}
 	end
 end}
 
-while conf0.iterate{ref=browser} do end
-
 print(prettytostring(items))	
 
-]]
+--]]
