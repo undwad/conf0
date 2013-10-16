@@ -461,6 +461,8 @@
 		luaM_setfield(-1, string, domain, domain)
 		luaM_setfield(-1, string, targethost, targethost)
 		luaM_setfield(-1, integer, opaqueport, opaqueport)
+		luaM_setfield(-1, string, text, avahi_string_list_to_string(txt))
+		luaM_setfield(-1, string, cookie, avahi_string_list_get_service_cookie(txt))
 		luaM_setfield(-1, integer, flags, flags)
 	conf0_callback_end(resolve_callback)
 
