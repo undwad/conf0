@@ -489,7 +489,6 @@
 	luaM__gc(browse_context_t)
 
 	conf0_callback_begin(browse_callback, AvahiServiceBrowser *browser, AvahiIfIndex interface_, AvahiProtocol protocol, AvahiBrowserEvent event_, const char *name, const char *type, const char *domain, AvahiLookupResultFlags flags)
-        printf("JODER\n");
 		luaM_setfield(-1, integer, interface_, interface_)
 		luaM_setfield(-1, integer, protocol, protocol)
 		luaM_setfield(-1, integer, event_, event_)
@@ -499,26 +498,16 @@
 		luaM_setfield(-1, integer, flags, flags)
 	conf0_callback_end(browse_callback)
 
- void browse_callback1( AvahiServiceBrowser *b,AvahiIfIndex interface,AvahiProtocol protocol,AvahiBrowserEvent event,const char *name,const char *type,const char *domain,AvahiLookupResultFlags flags,void *userdata)
- {
-    printf("JODER111\n");
- }
-
 	luaM_func_begin(browse)
-        printf("JODER1\n");
 		luaM_reqd_param(userdata, client)
 		client_context_t* client_context = (client_context_t*)client;
-		printf("JODER2 %x\n", client_context);
 		luaM_opt_param(integer, interface_, 0)
 		luaM_opt_param(integer, protocol, AVAHI_PROTO_UNSPEC)
 		luaM_reqd_param(string, type)
-		printf("JODER3\n");
 		luaM_opt_param(string, domain, nullptr)
 		luaM_opt_param(integer, flags, 0)
 		luaM_reqd_param(function, callback)
-		printf("JODER4 %x %d %x\n", L, callback, client_context);
 		luaM_return_userdata(browse_context_t, init, context, L, callback, client_context)
-		printf("JODER5\n");
 		conf0_call_dns_service(browser, avahi_service_browser_new, client_context->client, (AvahiIfIndex)interface_, (AvahiProtocol)protocol, type, domain, (AvahiLookupFlags)flags, browse_callback, context)
 	luaM_func_end
 
