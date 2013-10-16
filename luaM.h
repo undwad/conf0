@@ -74,9 +74,9 @@ static int lua_toregistry(lua_State* L, int idx)
 	lua_push##TYPE(L, __VA_ARGS__); \
 	result++;
 
-#define luaM_return_userdata(TYPE, NAME, ...) \
+#define luaM_return_userdata(TYPE, INIT, NAME, ...) \
 	TYPE* NAME = (TYPE*)lua_newuserdata(L, sizeof(TYPE)); \
-	NAME->TYPE::TYPE(__VA_ARGS__); \
+	NAME->INIT(__VA_ARGS__); \
 	lua_newtable(L); \
 	lua_pushcfunction(L, TYPE##__gc); \
 	lua_setfield(L, -2, "__gc"); \

@@ -73,12 +73,12 @@
 		int callback;
 		DNSServiceRef ref;
 		context_t(lua_State* L_, int callback_) : L(L_), callback(callback_), ref(nullptr) { }
-		~context_t() 
-		{ 
+		~context_t()
+		{
 			if(LUA_NOREF != callback)
 				luaL_unref(L, LUA_REGISTRYINDEX, callback);
 			if(ref)
-				DNSServiceRefDeallocate(ref); 
+				DNSServiceRefDeallocate(ref);
 		}
 	};
 
@@ -136,7 +136,7 @@
 		luaM_reqd_param(string, type)
 		luaM_opt_param(string, domain, nullptr)
 		luaM_reqd_param(function, callback)
-		luaM_return_userdata(context_t, context, L, callback)
+		luaM_return_userdata(context_t, context_t::context_t, context, L, callback)
 		conf0_call_dns_service(DNSServiceBrowse, &context->ref, (DNSServiceFlags)flags, interface_, type, domain, browse_callback, context)
 	luaM_func_end
 
@@ -158,7 +158,7 @@
 		luaM_reqd_param(string, type)
 		luaM_reqd_param(string, domain)
 		luaM_reqd_param(function, callback)
-		luaM_return_userdata(context_t, context, L, callback)
+		luaM_return_userdata(context_t, context_t::context_t, context, L, callback)
 		conf0_call_dns_service(DNSServiceResolve, &context->ref, (DNSServiceFlags)flags, interface_, name, type, domain, resolve_callback, context)
 	luaM_func_end
 
@@ -180,7 +180,7 @@
 		luaM_reqd_param(integer, type)
 		luaM_reqd_param(integer, class_)
 		luaM_reqd_param(function, callback)
-		luaM_return_userdata(context_t, context, L, callback)
+		luaM_return_userdata(context_t, context_t::context_t, context, L, callback)
 		conf0_call_dns_service(DNSServiceQueryRecord, &context->ref, (DNSServiceFlags)flags, interface_, fullname, type, class_, query_callback, context)
 	luaM_func_end
 
@@ -203,12 +203,12 @@
 		luaM_opt_param(integer, textlen, 0)
 		luaM_opt_param(string, text, nullptr)
 		luaM_reqd_param(function, callback)
-		luaM_return_userdata(context_t, context, L, callback)
+		luaM_return_userdata(context_t, context_t::context_t, context, L, callback)
 		conf0_call_dns_service(DNSServiceRegister, &context->ref, (DNSServiceFlags)flags, interface_, name, type, domain, host, port, textlen, text, register_callback, context)
 	luaM_func_end
 
-#	define conf0_reg_flag(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceFlags##NAME) 
-	void conf0_reg_flags(lua_State *L) 
+#	define conf0_reg_flag(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceFlags##NAME)
+	void conf0_reg_flags(lua_State *L)
 	{
 		conf0_reg_flag(MoreComing) // browse callback | resolve callback | query callback
 		conf0_reg_flag(Add) // browse callback | query callback | register callback
@@ -229,13 +229,13 @@
 	}
 
 #	undef IN
-#	define conf0_reg_class(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceClass_##NAME) 
+#	define conf0_reg_class(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceClass_##NAME)
 	void conf0_reg_classes(lua_State *L) // query | query callback
 	{
 		conf0_reg_class(IN)
 	}
 
-#	define conf0_reg_type(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceType_##NAME) 
+#	define conf0_reg_type(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceType_##NAME)
 	void conf0_reg_types(lua_State *L) // query | query callback
 	{
 		conf0_reg_type(A)
@@ -303,8 +303,8 @@
 		conf0_reg_type(ANY)
 	}
 
-#	define conf0_reg_error(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceErr_##NAME) 
-	void conf0_reg_errors(lua_State *L) 
+#	define conf0_reg_error(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceErr_##NAME)
+	void conf0_reg_errors(lua_State *L)
 	{
 		conf0_reg_error(NoError)
 		conf0_reg_error(Unknown)
@@ -340,9 +340,9 @@
 		conf0_reg_error(Timeout)
 	}
 
-	void conf0_reg_protocols(lua_State *L) 
-	{
-	}
+	void conf0_reg_protocols(lua_State *L) { }
+
+	void conf0_reg_events(lua_State *L)	{ }
 
 #elif defined(LINUX)
 
@@ -356,12 +356,12 @@
 	const char* backend = "avahi";
 
 #	define conf0_callback_begin(CALLBACK, ...) \
-	void DNSSD_API CALLBACK(__VA_ARGS__, void* userdata) \
+	void CALLBACK(__VA_ARGS__, void* userdata) \
 	{ \
 		base_context_t* context = (base_context_t*)userdata; \
 		lua_State *L = context->L; \
 		lua_rawgeti(L, LUA_REGISTRYINDEX, context->callback); \
-		lua_newtable(L); 
+		lua_newtable(L);
 
 #	define conf0_callback_end(CALLBACK) \
 		if(lua_pcall(L, 1, 0, 0)) \
@@ -386,8 +386,8 @@
 		lua_State* L;
 		int callback;
 		context_t(lua_State* L_, int callback_) : L(L_), callback(callback_) { }
-		virtual ~context_t() 
-		{ 
+		virtual ~context_t()
+		{
 			if(LUA_NOREF != callback)
 				luaL_unref(L, LUA_REGISTRYINDEX, callback);
 		}
@@ -397,9 +397,9 @@
 	{
         AvahiSimplePoll* poll;
         AvahiClient* client;
-		context_t(lua_State* L_, int callback_) : context_t(L_, callback_), poll(nullptr), client(nullptr)  { }
-		virtual ~context_t() 
-		{ 
+		client_context_t(lua_State* L_, int callback_) : context_t(L_, callback_), poll(nullptr), client(nullptr)  { }
+		virtual ~client_context_t()
+		{
 			if(client)
 				avahi_client_free(client);
 			if(poll)
@@ -420,10 +420,10 @@
 		luaM_reqd_param(userdata, ref)
 		luaM_opt_param(integer, timeout, 1000)
 		base_context_t* context = (base_context_t*)ref;
-	    int result = avahi_simple_poll_iterate(context->client_context->poll, timeout);
-        if(result < 0)
+	    int res = avahi_simple_poll_iterate(context->client_context->poll, timeout);
+        if(res < 0)
 			return luaL_error(L, avahi_strerror(avahi_client_errno(context->client_context->client)));
-		else if(result > 0)
+		else if(res > 0)
 		{
 			luaM_return(boolean, false)
 		}
@@ -445,16 +445,16 @@
             int error;
             if(context->client = avahi_client_new(avahi_simple_poll_get(context->poll), 0, client_callback, nullptr, &error))
 				return result;
-            else 
+            else
 			{
 				delete context;
-				return luaL_error(L, avahi_strerror(error)); 
+				return luaL_error(L, avahi_strerror(error));
 			}
         }
 		else
 		{
 			delete context;
-			return luaL_error(L, "avahi_simple_poll_new() failed"); 
+			return luaL_error(L, "avahi_simple_poll_new() failed");
 		}
 	luaM_func_end
 
@@ -464,12 +464,14 @@
 	{
 		AvahiServiceBrowser* browser;
 		browse_context_t(lua_State* L_, int callback_, client_context_t* client_context_) : base_context_t(L_, callback_, client_context_), browser(nullptr)  { }
-		virtual ~browse_context_t() 
-		{ 
+		virtual ~browse_context_t()
+		{
 			if(browser)
-				conf0_browser_free(browser);
+				avahi_service_browser_free(browser);
 		}
 	};
+
+	luaM__gc(browse_context_t)
 
 	conf0_callback_begin(browse_callback, AvahiServiceBrowser *browser, AvahiIfIndex interface_, AvahiProtocol protocol, AvahiBrowserEvent event_, const char *name, const char *type, const char *domain, AvahiLookupResultFlags flags)
 		luaM_setfield(-1, integer, interface_, interface_)
@@ -500,12 +502,14 @@
 	{
 		AvahiServiceResolver* resolver;
 		resolve_context_t(lua_State* L_, int callback_, client_context_t* client_context_) : base_context_t(L_, callback_, client_context_), resolver(nullptr)  { }
-		virtual ~resolve_context_t() 
-		{ 
+		virtual ~resolve_context_t()
+		{
 			if(resolver)
-				conf0_resolver_free(resolver);
+				avahi_service_resolver_free(resolver);
 		}
 	};
+
+	luaM__gc(resolve_context_t)
 
 	conf0_callback_begin(resolve_callback, AvahiServiceResolver *resolver, AvahiIfIndex interface_, AvahiProtocol protocol, AvahiResolverEvent event_, const char *name, const char *type, const char *domain, const char *targethost, const AvahiAddress *a, uint16_t opaqueport, AvahiStringList *txt, AvahiLookupResultFlags flags)
 		luaM_setfield(-1, integer, interface_, interface_)
@@ -515,7 +519,7 @@
 		luaM_setfield(-1, string, type, type)
 		luaM_setfield(-1, string, domain, domain)
 		luaM_setfield(-1, string, targethost, targethost)
-		luaM_setfield(-1, integer, port, port)
+		luaM_setfield(-1, integer, opaqueport, opaqueport)
 		luaM_setfield(-1, integer, flags, flags)
 	conf0_callback_end(resolve_callback)
 
@@ -540,14 +544,16 @@
 	{
 		AvahiRecordBrowser* browser;
 		query_context_t(lua_State* L_, int callback_, client_context_t* client_context_) : base_context_t(L_, callback_, client_context_), browser(nullptr)  { }
-		virtual ~query_context_t() 
-		{ 
+		virtual ~query_context_t()
+		{
 			if(browser)
-				conf0_record_browser_free(browser);
+				avahi_record_browser_free(browser);
 		}
 	};
 
-	conf0_callback_begin(query_callback, AvahiRecordBrowser *resolver, AvahiIfIndex interface_, AvahiProtocol protocol, AvahiRecordBrowser event_, const char *fullname, uint16_t class_, uint16_t type, const void *data, size_t datalen, AvahiLookupResultFlags flags)
+	luaM__gc(query_context_t)
+
+	conf0_callback_begin(query_callback, AvahiRecordBrowser *resolver, AvahiIfIndex interface_, AvahiProtocol protocol, AvahiBrowserEvent event_, const char *fullname, uint16_t class_, uint16_t type, const void *data, size_t datalen, AvahiLookupResultFlags flags)
 		luaM_setfield(-1, integer, interface_, interface_)
 		luaM_setfield(-1, integer, protocol, protocol)
 		luaM_setfield(-1, integer, event_, event_)
@@ -564,8 +570,8 @@
 		luaM_opt_param(integer, interface_, 0)
 		luaM_opt_param(integer, protocol, AVAHI_PROTO_UNSPEC)
 		luaM_reqd_param(string, fullname)
-		luaM_reqd_param(integer, type, 0)
-		luaM_reqd_param(integer, class_, 0)
+		luaM_reqd_param(integer, type)
+		luaM_reqd_param(integer, class_)
 		luaM_opt_param(integer, flags, 0)
 		luaM_reqd_param(function, callback)
 		luaM_return_userdata(query_context_t, context, L, callback, client_context)
@@ -589,141 +595,54 @@
 		//conf0_call_dns_service(DNSServiceRegister, &context->ref, (DNSServiceFlags)flags, interface_, name, type, domain, host, port, textlen, text, register_callback, context)
 	luaM_func_end
 
-#	define conf0_reg_flag(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceFlags##NAME) 
-	void conf0_reg_flags(lua_State *L) 
+#   define conf0_reg_flag(NAME) luaM_setfield(-1, integer, NAME, AVAHI_LOOKUP_##NAME)
+	void conf0_reg_flags(lua_State *L)
 	{
-		conf0_reg_flag(MoreComing) // browse callback | resolve callback | query callback
-		conf0_reg_flag(Add) // browse callback | query callback | register callback
-		conf0_reg_flag(Default)
-		conf0_reg_flag(NoAutoRename)
-		conf0_reg_flag(Shared)
-		conf0_reg_flag(Unique)
-		conf0_reg_flag(BrowseDomains)
-		conf0_reg_flag(RegistrationDomains)
-		conf0_reg_flag(LongLivedQuery) // query
-		conf0_reg_flag(AllowRemoteQuery)
-		conf0_reg_flag(ForceMulticast) // resolve | query
-		conf0_reg_flag(Force)
-		conf0_reg_flag(ReturnIntermediates)
-		conf0_reg_flag(NonBrowsable)
-		conf0_reg_flag(ShareConnection)
-		conf0_reg_flag(SuppressUnusable)
+		conf0_reg_flag(USE_WIDE_AREA)
+		conf0_reg_flag(USE_MULTICAST)
+		conf0_reg_flag(NO_TXT)
+		conf0_reg_flag(NO_ADDRESS)
+		conf0_reg_flag(RESULT_CACHED)
+		conf0_reg_flag(RESULT_WIDE_AREA)
+		conf0_reg_flag(RESULT_MULTICAST)
+		conf0_reg_flag(RESULT_LOCAL)
+		conf0_reg_flag(RESULT_OUR_OWN)
+		conf0_reg_flag(RESULT_STATIC)
 	}
 
-#	undef IN
-#	define conf0_reg_class(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceClass_##NAME) 
+#	define conf0_reg_class(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceClass_##NAME)
 	void conf0_reg_classes(lua_State *L) // query | query callback
 	{
-		conf0_reg_class(IN)
 	}
 
-#	define conf0_reg_type(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceType_##NAME) 
+#	define conf0_reg_type(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceType_##NAME)
 	void conf0_reg_types(lua_State *L) // query | query callback
 	{
-		conf0_reg_type(A)
-		conf0_reg_type(NS)
-		conf0_reg_type(MD)
-		conf0_reg_type(MF)
-		conf0_reg_type(CNAME)
-		conf0_reg_type(SOA)
-		conf0_reg_type(MB)
-		conf0_reg_type(MG)
-		conf0_reg_type(MR)
-		conf0_reg_type(WKS)
-		conf0_reg_type(PTR)
-		conf0_reg_type(HINFO)
-		conf0_reg_type(MINFO)
-		conf0_reg_type(MX)
-		conf0_reg_type(TXT)
-		conf0_reg_type(RP)
-		conf0_reg_type(AFSDB)
-		conf0_reg_type(X25)
-		conf0_reg_type(ISDN)
-		conf0_reg_type(RT)
-		conf0_reg_type(NSAP)
-		conf0_reg_type(NSAP_PTR)
-		conf0_reg_type(SIG)
-		conf0_reg_type(KEY)
-		conf0_reg_type(PX)
-		conf0_reg_type(GPOS)
-		conf0_reg_type(AAAA)
-		conf0_reg_type(LOC)
-		conf0_reg_type(NXT)
-		conf0_reg_type(EID)
-		conf0_reg_type(NIMLOC)
-		conf0_reg_type(SRV)
-		conf0_reg_type(ATMA)
-		conf0_reg_type(NAPTR)
-		conf0_reg_type(KX)
-		conf0_reg_type(CERT)
-		conf0_reg_type(A6)
-		conf0_reg_type(DNAME)
-		conf0_reg_type(SINK)
-		conf0_reg_type(OPT)
-		conf0_reg_type(APL)
-		conf0_reg_type(DS)
-		conf0_reg_type(SSHFP)
-		conf0_reg_type(IPSECKEY)
-		conf0_reg_type(RRSIG)
-		conf0_reg_type(NSEC)
-		conf0_reg_type(DNSKEY)
-		conf0_reg_type(DHCID)
-		conf0_reg_type(NSEC3)
-		conf0_reg_type(NSEC3PARAM)
-		conf0_reg_type(HIP)
-		conf0_reg_type(SPF)
-		conf0_reg_type(UINFO)
-		conf0_reg_type(UID)
-		conf0_reg_type(GID)
-		conf0_reg_type(UNSPEC)
-		conf0_reg_type(TKEY)
-		conf0_reg_type(TSIG)
-		conf0_reg_type(IXFR)
-		conf0_reg_type(AXFR)
-		conf0_reg_type(MAILB)
-		conf0_reg_type(MAILA)
-		conf0_reg_type(ANY)
 	}
 
-#	define conf0_reg_error(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceErr_##NAME) 
-	void conf0_reg_errors(lua_State *L) 
+#	define conf0_reg_error(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceErr_##NAME)
+	void conf0_reg_errors(lua_State *L)
 	{
-		conf0_reg_error(NoError)
-		conf0_reg_error(Unknown)
-		conf0_reg_error(NoSuchName)
-		conf0_reg_error(NoMemory)
-		conf0_reg_error(BadParam)
-		conf0_reg_error(BadReference)
-		conf0_reg_error(BadState)
-		conf0_reg_error(BadFlags)
-		conf0_reg_error(Unsupported)
-		conf0_reg_error(NotInitialized)
-		conf0_reg_error(AlreadyRegistered)
-		conf0_reg_error(NameConflict)
-		conf0_reg_error(Invalid)
-		conf0_reg_error(Firewall)
-		conf0_reg_error(Incompatible)
-		conf0_reg_error(BadInterfaceIndex)
-		conf0_reg_error(Refused)
-		conf0_reg_error(NoSuchRecord)
-		conf0_reg_error(NoAuth)
-		conf0_reg_error(NoSuchKey)
-		conf0_reg_error(NATTraversal)
-		conf0_reg_error(DoubleNAT)
-		conf0_reg_error(BadTime)
-		conf0_reg_error(BadSig)
-		conf0_reg_error(BadKey)
-		conf0_reg_error(Transient)
-		conf0_reg_error(ServiceNotRunning)
-		conf0_reg_error(NATPortMappingUnsupported)
-		conf0_reg_error(NATPortMappingDisabled)
-		conf0_reg_error(NoRouter)
-		conf0_reg_error(PollingMode)
-		conf0_reg_error(Timeout)
 	}
 
-	void conf0_reg_protocols(lua_State *L) 
+#   define conf0_reg_protocol(NAME) luaM_setfield(-1, integer, NAME, AVAHI_PROTO_##NAME)
+	void conf0_reg_protocols(lua_State *L)
 	{
+        conf0_reg_protocol(INET)
+        conf0_reg_protocol(INET6)
+        conf0_reg_protocol(UNSPEC)
+	}
+
+#   define conf0_reg_event(NAME) luaM_setfield(-1, integer, NAME, AVAHI_##NAME)
+	void conf0_reg_events(lua_State *L)
+	{
+        conf0_reg_event(BROWSER_NEW)
+        conf0_reg_event(BROWSER_REMOVE)
+        conf0_reg_event(BROWSER_CACHE_EXHAUSTED)
+        conf0_reg_event(BROWSER_ALL_FOR_NOW)
+        conf0_reg_event(BROWSER_FAILURE)
+        conf0_reg_event(RESOLVER_FOUND)
+        conf0_reg_event(RESOLVER_FAILURE)
 	}
 
 #elif defined(OSX)
@@ -732,7 +651,7 @@
 #	error incompatible platform
 #endif
 
-static const struct luaL_Reg lib[] = 
+static const struct luaL_Reg lib[] =
 {
 	{"savestack", luaM_save_stack},
 	{"connect", connect},
@@ -751,7 +670,7 @@ static const struct luaL_Reg lib[] =
 
 extern "C"
 {
-	LUAMOD_API int luaopen_conf0(lua_State *L) 
+	LUAMOD_API int luaopen_conf0(lua_State *L)
 	{
 		luaL_newlib (L, lib);
 		luaM_setfield(-1, string, backend, backend)
@@ -760,6 +679,7 @@ extern "C"
 		conf0_reg_enum(types)
 		conf0_reg_enum(errors)
 		conf0_reg_enum(protocols)
+		conf0_reg_enum(events)
 		lua_setglobal(L, "conf0");
 		return 1;
 	}
