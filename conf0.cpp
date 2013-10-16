@@ -65,7 +65,7 @@
 		return luaL_error(L, #FUNC "() failed with error %d", error); \
 	}
 
-	/* CONNECT */
+	/* COMMON */
 
 	struct context_t
 	{
@@ -115,10 +115,6 @@
 		{
 			luaM_return(boolean, false)
 		}
-	luaM_func_end
-
-	luaM_func_begin(connect)
-		luaM_return(lightuserdata, (void*)-1)
 	luaM_func_end
 
 	/* BROWSE */
@@ -308,7 +304,7 @@
 		return luaL_error(L, avahi_strerror(avahi_client_errno(client_context->client))); \
 	}
 
-	/* CONNECT */
+	/* COMMON */
 
 	struct context_t
 	{
@@ -748,7 +744,6 @@ void conf0_reg_types(lua_State *L) // query | query callback
 static const struct luaL_Reg lib[] =
 {
 	{"savestack", luaM_save_stack},
-	{"connect", connect},
 	{"browse", browse},
 	{"resolve", resolve},
 	{"query", query},
