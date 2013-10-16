@@ -574,12 +574,6 @@
 
 	/* REGISTER */
 
-	conf0_callback_begin(register_callback, DNSServiceErrorType error, const char* name, const char* type, const char* domain)
-		luaM_setfield(-1, string, name, name)
-		luaM_setfield(-1, string, type, type)
-		luaM_setfield(-1, string, domain, domain)
-	conf0_callback_end(register_callback)
-
 	luaM_func_begin(register_)
 		luaM_opt_param(integer, flags, 0)
 		luaM_opt_param(integer, interface_, 0)
@@ -591,8 +585,8 @@
 		luaM_opt_param(integer, textlen, 0)
 		luaM_opt_param(string, text, nullptr)
 		luaM_reqd_param(function, callback)
-		luaM_return_userdata(context_t, context, L, callback)
-		conf0_call_dns_service(DNSServiceRegister, &context->ref, (DNSServiceFlags)flags, interface_, name, type, domain, host, port, textlen, text, register_callback, context)
+		//luaM_return_userdata(context_t, context, L, callback)
+		//conf0_call_dns_service(DNSServiceRegister, &context->ref, (DNSServiceFlags)flags, interface_, name, type, domain, host, port, textlen, text, register_callback, context)
 	luaM_func_end
 
 #	define conf0_reg_flag(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceFlags##NAME) 
