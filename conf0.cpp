@@ -339,8 +339,8 @@
 		luaM_opt_param(userdata, ref, nullptr) \
 		if(ref) \
 		{ \
-			CONTEXT->poll = (context_t*)ref->poll; \
-			CONTEXT->client = (context_t*)ref->client; \
+			CONTEXT->poll = ((context_t*)ref)->poll; \
+			CONTEXT->client = ((context_t*)ref)->client; \
 			CONTEXT->copy = true; \
 		} \
         else if(CONTEXT->poll = avahi_simple_poll_new()) \
