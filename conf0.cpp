@@ -312,7 +312,8 @@
 		int callback;
         AvahiSimplePoll* poll;
         AvahiClient* client;
-        context_t() : L(nullptr), callback(LUA_NOREF), poll(nullptr), client(nullptr) {}
+		bool copy;
+        context_t() : L(nullptr), callback(LUA_NOREF), poll(nullptr), client(nullptr), copy(false) {}
 		virtual void init(lua_State* L_, int callback_)
 		{
             L = L_;
@@ -322,21 +323,32 @@
 		{
 			if(LUA_NOREF != callback)
 				luaL_unref(L, LUA_REGISTRYINDEX, callback);
-			if(client)
-				avahi_client_free(client);
-			if(poll)
-				avahi_simple_poll_free(poll);
+			if(!copy)
+			{
+				if(client)
+					avahi_client_free(client);
+				if(poll)
+					avahi_simple_poll_free(poll);
+			}
 		}
 	};
 
 	static void client_callback(AvahiClient *c, AvahiClientState state, AVAHI_GCC_UNUSED void * userdata) { }
 
 #   define avahi_alloc_client(CONTEXT) \
-        if(CONTEXT->poll = avahi_simple_poll_new()) \
+		luaM_opt_param(userdata, ref, nullptr) \
+		if(ref) \
+		{ \
+			CONTEXT->poll = (context_t*)ref->poll; \
+			CONTEXT->client = (context_t*)ref->client; \
+			CONTEXT->copy = true; \
+		} \
+        else if(CONTEXT->poll = avahi_simple_poll_new()) \
         { \
             int error; \
             if(CONTEXT->client = avahi_client_new(avahi_simple_poll_get(CONTEXT->poll), flags, client_callback, context, &error)) \
             { \
+				CONTEXT->copy = false; \
             } \
             else \
 			{ \
