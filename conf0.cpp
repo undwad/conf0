@@ -385,7 +385,11 @@
 	{
 		lua_State* L;
 		int callback;
-		context_t(lua_State* L_, int callback_) : L(L_), callback(callback_) { }
+		virtual void init(lua_State* L_, int callback_)
+		{
+            L = L_;
+            callback = callback_;
+        }
 		virtual ~context_t()
 		{
 			if(LUA_NOREF != callback)
@@ -397,7 +401,12 @@
 	{
         AvahiSimplePoll* poll;
         AvahiClient* client;
-		client_context_t(lua_State* L_, int callback_) : context_t(L_, callback_), poll(nullptr), client(nullptr)  { }
+		virtual void init(lua_State* L_, int callback_)
+		{
+            context_t::init(L_, callback_);
+            poll = nullptr;
+            client = nullptr;
+		}
 		virtual ~client_context_t()
 		{
 			if(client)
@@ -410,7 +419,11 @@
 	struct base_context_t : context_t
 	{
 		client_context_t* client_context;
-		base_context_t(lua_State* L_, int callback_, client_context_t* client_context_) : context_t(L_, callback_), client_context(client_context_)  { }
+		virtual void init(lua_State* L_, int callback_, client_context_t* client_context_)
+		{
+            context_t::init(L_, callback_);
+            client_context = client_context_;
+        }
 		virtual ~base_context_t() { }
 	};
 
@@ -439,7 +452,7 @@
 
 	luaM_func_begin(connect)
 		luaM_reqd_param(function, callback)
-		luaM_return_userdata(client_context_t, context, L, callback)
+		luaM_return_userdata(client_context_t, init, context, L, callback)
         if(context->poll = avahi_simple_poll_new())
         {
             int error;
@@ -463,7 +476,6 @@
 	struct browse_context_t : base_context_t
 	{
 		AvahiServiceBrowser* browser;
-		browse_context_t(lua_State* L_, int callback_, client_context_t* client_context_) : base_context_t(L_, callback_, client_context_), browser(nullptr)  { }
 		virtual ~browse_context_t()
 		{
 			if(browser)
@@ -492,7 +504,7 @@
 		luaM_opt_param(string, domain, nullptr)
 		luaM_opt_param(integer, flags, 0)
 		luaM_reqd_param(function, callback)
-		luaM_return_userdata(browse_context_t, context, L, callback, client_context)
+		luaM_return_userdata(browse_context_t, init, context, L, callback, client_context)
 		conf0_call_dns_service(browser, avahi_service_browser_new, client_context->client, (AvahiIfIndex)interface_, (AvahiProtocol)protocol, type, domain, (AvahiLookupFlags)flags, browse_callback, context)
 	luaM_func_end
 
@@ -501,7 +513,6 @@
 	struct resolve_context_t : base_context_t
 	{
 		AvahiServiceResolver* resolver;
-		resolve_context_t(lua_State* L_, int callback_, client_context_t* client_context_) : base_context_t(L_, callback_, client_context_), resolver(nullptr)  { }
 		virtual ~resolve_context_t()
 		{
 			if(resolver)
@@ -534,7 +545,7 @@
 		luaM_opt_param(integer, aprotocol, AVAHI_PROTO_UNSPEC)
 		luaM_opt_param(integer, flags, 0)
 		luaM_reqd_param(function, callback)
-		luaM_return_userdata(resolve_context_t, context, L, callback, client_context)
+		luaM_return_userdata(resolve_context_t, init, context, L, callback, client_context)
 		conf0_call_dns_service(resolver, avahi_service_resolver_new, client_context->client, (AvahiIfIndex)interface_, (AvahiProtocol)protocol, name, type, domain, (AvahiProtocol)aprotocol, (AvahiLookupFlags)flags, resolve_callback, context)
 	luaM_func_end
 
@@ -543,7 +554,6 @@
 	struct query_context_t : base_context_t
 	{
 		AvahiRecordBrowser* browser;
-		query_context_t(lua_State* L_, int callback_, client_context_t* client_context_) : base_context_t(L_, callback_, client_context_), browser(nullptr)  { }
 		virtual ~query_context_t()
 		{
 			if(browser)
@@ -574,7 +584,7 @@
 		luaM_reqd_param(integer, class_)
 		luaM_opt_param(integer, flags, 0)
 		luaM_reqd_param(function, callback)
-		luaM_return_userdata(query_context_t, context, L, callback, client_context)
+		luaM_return_userdata(query_context_t, init, context, L, callback, client_context)
 		conf0_call_dns_service(browser, avahi_record_browser_new, client_context->client, (AvahiIfIndex)interface_, (AvahiProtocol)protocol, fullname, type, class_, (AvahiLookupFlags)flags, query_callback, context)
 	luaM_func_end
 
@@ -591,7 +601,7 @@
 		luaM_opt_param(integer, textlen, 0)
 		luaM_opt_param(string, text, nullptr)
 		luaM_reqd_param(function, callback)
-		//luaM_return_userdata(context_t, context, L, callback)
+		//luaM_return_userdata(context_t, init, context, L, callback)
 		//conf0_call_dns_service(DNSServiceRegister, &context->ref, (DNSServiceFlags)flags, interface_, name, type, domain, host, port, textlen, text, register_callback, context)
 	luaM_func_end
 
