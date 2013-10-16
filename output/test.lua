@@ -32,11 +32,14 @@ local resolver = conf0.resolve{name = 'axis-00408cafc3b2.local.', type = '_rtsp.
 	io.write('.')
 	print('RESOLVER', j)
 end}
+conf0.iterate{ref=resolver}
 
 os.execute('pause')
 
 --local registrator = conf0.register_{type = "_http._tcp", name = 'conf0test', port = port2opaque(5500), callback = function(res) print(prettytostring(res)) end}
 --conf0.iterate{ref=registrator}
+
+--[[
 
 local items = {}
 
@@ -67,3 +70,5 @@ end}
 while conf0.iterate{ref=browser} do end
 
 print(prettytostring(items))	
+
+]]
