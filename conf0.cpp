@@ -228,81 +228,6 @@
 		conf0_reg_flag(SuppressUnusable)
 	}
 
-#	undef IN
-#	define conf0_reg_class(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceClass_##NAME)
-	void conf0_reg_classes(lua_State *L) // query | query callback
-	{
-		conf0_reg_class(IN)
-	}
-
-#	define conf0_reg_type(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceType_##NAME)
-	void conf0_reg_types(lua_State *L) // query | query callback
-	{
-		conf0_reg_type(A)
-		conf0_reg_type(NS)
-		conf0_reg_type(MD)
-		conf0_reg_type(MF)
-		conf0_reg_type(CNAME)
-		conf0_reg_type(SOA)
-		conf0_reg_type(MB)
-		conf0_reg_type(MG)
-		conf0_reg_type(MR)
-		conf0_reg_type(WKS)
-		conf0_reg_type(PTR)
-		conf0_reg_type(HINFO)
-		conf0_reg_type(MINFO)
-		conf0_reg_type(MX)
-		conf0_reg_type(TXT)
-		conf0_reg_type(RP)
-		conf0_reg_type(AFSDB)
-		conf0_reg_type(X25)
-		conf0_reg_type(ISDN)
-		conf0_reg_type(RT)
-		conf0_reg_type(NSAP)
-		conf0_reg_type(NSAP_PTR)
-		conf0_reg_type(SIG)
-		conf0_reg_type(KEY)
-		conf0_reg_type(PX)
-		conf0_reg_type(GPOS)
-		conf0_reg_type(AAAA)
-		conf0_reg_type(LOC)
-		conf0_reg_type(NXT)
-		conf0_reg_type(EID)
-		conf0_reg_type(NIMLOC)
-		conf0_reg_type(SRV)
-		conf0_reg_type(ATMA)
-		conf0_reg_type(NAPTR)
-		conf0_reg_type(KX)
-		conf0_reg_type(CERT)
-		conf0_reg_type(A6)
-		conf0_reg_type(DNAME)
-		conf0_reg_type(SINK)
-		conf0_reg_type(OPT)
-		conf0_reg_type(APL)
-		conf0_reg_type(DS)
-		conf0_reg_type(SSHFP)
-		conf0_reg_type(IPSECKEY)
-		conf0_reg_type(RRSIG)
-		conf0_reg_type(NSEC)
-		conf0_reg_type(DNSKEY)
-		conf0_reg_type(DHCID)
-		conf0_reg_type(NSEC3)
-		conf0_reg_type(NSEC3PARAM)
-		conf0_reg_type(HIP)
-		conf0_reg_type(SPF)
-		conf0_reg_type(UINFO)
-		conf0_reg_type(UID)
-		conf0_reg_type(GID)
-		conf0_reg_type(UNSPEC)
-		conf0_reg_type(TKEY)
-		conf0_reg_type(TSIG)
-		conf0_reg_type(IXFR)
-		conf0_reg_type(AXFR)
-		conf0_reg_type(MAILB)
-		conf0_reg_type(MAILA)
-		conf0_reg_type(ANY)
-	}
-
 #	define conf0_reg_error(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceErr_##NAME)
 	void conf0_reg_errors(lua_State *L)
 	{
@@ -625,16 +550,6 @@
 		conf0_reg_flag(CLIENT_NO_FAIL)
 	}
 
-#	define conf0_reg_class(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceClass_##NAME)
-	void conf0_reg_classes(lua_State *L) // query | query callback
-	{
-	}
-
-#	define conf0_reg_type(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceType_##NAME)
-	void conf0_reg_types(lua_State *L) // query | query callback
-	{
-	}
-
 #	define conf0_reg_error(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceErr_##NAME)
 	void conf0_reg_errors(lua_State *L)
 	{
@@ -670,11 +585,154 @@
         conf0_reg_state(CONNECTING)
 	}
 
+#	define kDNSServiceClass_IN        1
+
+#	define kDNSServiceType_A         1      /* Host address. */
+#	define kDNSServiceType_NS        2      /* Authoritative server. */
+#	define kDNSServiceType_MD        3      /* Mail destination. */
+#	define kDNSServiceType_MF        4      /* Mail forwarder. */
+#	define kDNSServiceType_CNAME     5      /* Canonical name. */
+#	define kDNSServiceType_SOA       6      /* Start of authority zone. */
+#	define kDNSServiceType_MB        7      /* Mailbox domain name. */
+#	define kDNSServiceType_MG        8      /* Mail group member. */
+#	define kDNSServiceType_MR        9      /* Mail rename name. */
+#	define kDNSServiceType_NULL      10     /* Null resource record. */
+#	define kDNSServiceType_WKS       11     /* Well known service. */
+#	define kDNSServiceType_PTR       12     /* Domain name pointer. */
+#	define kDNSServiceType_HINFO     13     /* Host information. */
+#	define kDNSServiceType_MINFO     14     /* Mailbox information. */
+#	define kDNSServiceType_MX        15     /* Mail routing information. */
+#	define kDNSServiceType_TXT       16     /* One or more text strings (NOT "zero or more..."). */
+#	define kDNSServiceType_RP        17     /* Responsible person. */
+#	define kDNSServiceType_AFSDB     18     /* AFS cell database. */
+#	define kDNSServiceType_X25       19     /* X_25 calling address. */
+#	define kDNSServiceType_ISDN      20     /* ISDN calling address. */
+#	define kDNSServiceType_RT        21     /* Router. */
+#	define kDNSServiceType_NSAP      22     /* NSAP address. */
+#	define kDNSServiceType_NSAP_PTR  23     /* Reverse NSAP lookup (deprecated). */
+#	define kDNSServiceType_SIG       24     /* Security signature. */
+#	define kDNSServiceType_KEY       25     /* Security key. */
+#	define kDNSServiceType_PX        26     /* X.400 mail mapping. */
+#	define kDNSServiceType_GPOS      27     /* Geographical position (withdrawn). */
+#	define kDNSServiceType_AAAA      28     /* IPv6 Address. */
+#	define kDNSServiceType_LOC       29     /* Location Information. */
+#	define kDNSServiceType_NXT       30     /* Next domain (security). */
+#	define kDNSServiceType_EID       31     /* Endpoint identifier. */
+#	define kDNSServiceType_NIMLOC    32     /* Nimrod Locator. */
+#	define kDNSServiceType_SRV       33     /* Server Selection. */
+#	define kDNSServiceType_ATMA      34     /* ATM Address */
+#	define kDNSServiceType_NAPTR     35     /* Naming Authority PoinTeR */
+#	define kDNSServiceType_KX        36     /* Key Exchange */
+#	define kDNSServiceType_CERT      37     /* Certification record */
+#	define kDNSServiceType_A6        38     /* IPv6 Address (deprecated) */
+#	define kDNSServiceType_DNAME     39     /* Non-terminal DNAME (for IPv6) */
+#	define kDNSServiceType_SINK      40     /* Kitchen sink (experimental) */
+#	define kDNSServiceType_OPT       41     /* EDNS0 option (meta-RR) */
+#	define kDNSServiceType_APL       42     /* Address Prefix List */
+#	define kDNSServiceType_DS        43     /* Delegation Signer */
+#	define kDNSServiceType_SSHFP     44     /* SSH Key Fingerprint */
+#	define kDNSServiceType_IPSECKEY  45     /* IPSECKEY */
+#	define kDNSServiceType_RRSIG     46     /* RRSIG */
+#	define kDNSServiceType_NSEC      47     /* Denial of Existence */
+#	define kDNSServiceType_DNSKEY    48     /* DNSKEY */
+#	define kDNSServiceType_DHCID     49     /* DHCP Client Identifier */
+#	define kDNSServiceType_NSEC3     50     /* Hashed Authenticated Denial of Existence */
+#	define kDNSServiceType_NSEC3PARAM 51     /* Hashed Authenticated Denial of Existence */
+#	define kDNSServiceType_HIP       55     /* Host Identity Protocol */
+#	define kDNSServiceType_SPF       99     /* Sender Policy Framework for E-Mail */
+#	define kDNSServiceType_UINFO     100    /* IANA-Reserved */
+#	define kDNSServiceType_UID       101    /* IANA-Reserved */
+#	define kDNSServiceType_GID       102    /* IANA-Reserved */
+#	define kDNSServiceType_UNSPEC    103    /* IANA-Reserved */
+#	define kDNSServiceType_TKEY      249    /* Transaction key */
+#	define kDNSServiceType_TSIG      250    /* Transaction signature. */
+#	define kDNSServiceType_IXFR      251    /* Incremental zone transfer. */
+#	define kDNSServiceType_AXFR      252    /* Transfer zone of authority. */
+#	define kDNSServiceType_MAILB     253    /* Transfer mailbox records. */
+#	define kDNSServiceType_MAILA     254    /* Transfer mail agent records. */
+#	define kDNSServiceType_ANY       255
+
 #elif defined(OSX)
 #	error incompatible platform
 #else
 #	error incompatible platform
 #endif
+
+#undef IN 
+#define conf0_reg_class(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceClass_##NAME)
+void conf0_reg_classes(lua_State *L) // query | query callback
+{
+	conf0_reg_class(IN)
+}
+
+#define conf0_reg_type(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceType_##NAME)
+void conf0_reg_types(lua_State *L) // query | query callback
+{
+	conf0_reg_type(A)
+	conf0_reg_type(NS)
+	conf0_reg_type(MD)
+	conf0_reg_type(MF)
+	conf0_reg_type(CNAME)
+	conf0_reg_type(SOA)
+	conf0_reg_type(MB)
+	conf0_reg_type(MG)
+	conf0_reg_type(MR)
+	conf0_reg_type(WKS)
+	conf0_reg_type(PTR)
+	conf0_reg_type(HINFO)
+	conf0_reg_type(MINFO)
+	conf0_reg_type(MX)
+	conf0_reg_type(TXT)
+	conf0_reg_type(RP)
+	conf0_reg_type(AFSDB)
+	conf0_reg_type(X25)
+	conf0_reg_type(ISDN)
+	conf0_reg_type(RT)
+	conf0_reg_type(NSAP)
+	conf0_reg_type(NSAP_PTR)
+	conf0_reg_type(SIG)
+	conf0_reg_type(KEY)
+	conf0_reg_type(PX)
+	conf0_reg_type(GPOS)
+	conf0_reg_type(AAAA)
+	conf0_reg_type(LOC)
+	conf0_reg_type(NXT)
+	conf0_reg_type(EID)
+	conf0_reg_type(NIMLOC)
+	conf0_reg_type(SRV)
+	conf0_reg_type(ATMA)
+	conf0_reg_type(NAPTR)
+	conf0_reg_type(KX)
+	conf0_reg_type(CERT)
+	conf0_reg_type(A6)
+	conf0_reg_type(DNAME)
+	conf0_reg_type(SINK)
+	conf0_reg_type(OPT)
+	conf0_reg_type(APL)
+	conf0_reg_type(DS)
+	conf0_reg_type(SSHFP)
+	conf0_reg_type(IPSECKEY)
+	conf0_reg_type(RRSIG)
+	conf0_reg_type(NSEC)
+	conf0_reg_type(DNSKEY)
+	conf0_reg_type(DHCID)
+	conf0_reg_type(NSEC3)
+	conf0_reg_type(NSEC3PARAM)
+	conf0_reg_type(HIP)
+	conf0_reg_type(SPF)
+	conf0_reg_type(UINFO)
+	conf0_reg_type(UID)
+	conf0_reg_type(GID)
+	conf0_reg_type(UNSPEC)
+	conf0_reg_type(TKEY)
+	conf0_reg_type(TSIG)
+	conf0_reg_type(IXFR)
+	conf0_reg_type(AXFR)
+	conf0_reg_type(MAILB)
+	conf0_reg_type(MAILA)
+	conf0_reg_type(ANY)
+}
+
 
 static const struct luaL_Reg lib[] =
 {
