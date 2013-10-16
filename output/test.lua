@@ -28,10 +28,10 @@ port2opaque = opaque2port
 
 print(prettytostring(conf0))
 
-	local resolver = conf0.resolve{name = 'axis-00408cafc3b2.local.', type = '_rtsp._tcp', domain = 'local.', callback = function(j)
-		io.write('.')
-		print('RESOLVER', j)
-	end}
+local resolver = conf0.resolve{name = 'axis-00408cafc3b2.local.', type = '_rtsp._tcp', domain = 'local.', callback = function(j)
+	io.write('.')
+	print('RESOLVER', j)
+end}
 
 os.execute('pause')
 
