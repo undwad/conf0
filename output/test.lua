@@ -1,6 +1,8 @@
 require 'std'
 require 'conf0'
 
+--debug.sethook(function (event, line) print(debug.getinfo(2).short_src .. ":" .. line) end, "l")
+
 function savestack() conf0.savestack('f:/github/conf0/output/stack.txt') end
 
 byte = string.byte

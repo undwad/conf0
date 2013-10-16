@@ -136,7 +136,7 @@
 		luaM_reqd_param(string, type)
 		luaM_opt_param(string, domain, nullptr)
 		luaM_reqd_param(function, callback)
-		luaM_return_userdata(context_t, context_t::context_t, context, L, callback)
+		luaM_return_userdata(context_t, context_t, context, L, callback)
 		conf0_call_dns_service(DNSServiceBrowse, &context->ref, (DNSServiceFlags)flags, interface_, type, domain, browse_callback, context)
 	luaM_func_end
 
@@ -158,7 +158,7 @@
 		luaM_reqd_param(string, type)
 		luaM_reqd_param(string, domain)
 		luaM_reqd_param(function, callback)
-		luaM_return_userdata(context_t, context_t::context_t, context, L, callback)
+		luaM_return_userdata(context_t, context_t, context, L, callback)
 		conf0_call_dns_service(DNSServiceResolve, &context->ref, (DNSServiceFlags)flags, interface_, name, type, domain, resolve_callback, context)
 	luaM_func_end
 
@@ -180,7 +180,7 @@
 		luaM_reqd_param(integer, type)
 		luaM_reqd_param(integer, class_)
 		luaM_reqd_param(function, callback)
-		luaM_return_userdata(context_t, context_t::context_t, context, L, callback)
+		luaM_return_userdata(context_t, context_t, context, L, callback)
 		conf0_call_dns_service(DNSServiceQueryRecord, &context->ref, (DNSServiceFlags)flags, interface_, fullname, type, class_, query_callback, context)
 	luaM_func_end
 
@@ -203,7 +203,7 @@
 		luaM_opt_param(integer, textlen, 0)
 		luaM_opt_param(string, text, nullptr)
 		luaM_reqd_param(function, callback)
-		luaM_return_userdata(context_t, context_t::context_t, context, L, callback)
+		luaM_return_userdata(context_t, context_t, context, L, callback)
 		conf0_call_dns_service(DNSServiceRegister, &context->ref, (DNSServiceFlags)flags, interface_, name, type, domain, host, port, textlen, text, register_callback, context)
 	luaM_func_end
 
@@ -344,6 +344,8 @@
 
 	void conf0_reg_events(lua_State *L)	{ }
 
+	void conf0_reg_states(lua_State *L) { }
+
 #elif defined(LINUX)
 
 #   include <avahi-client/client.h>
@@ -451,12 +453,13 @@
 	conf0_callback_end(client_callback)
 
 	luaM_func_begin(connect)
+        luaM_opt_param(integer, flags, 0)
 		luaM_reqd_param(function, callback)
 		luaM_return_userdata(client_context_t, init, context, L, callback)
         if(context->poll = avahi_simple_poll_new())
         {
             int error;
-            if(context->client = avahi_client_new(avahi_simple_poll_get(context->poll), 0, client_callback, nullptr, &error))
+            if(context->client = avahi_client_new(avahi_simple_poll_get(context->poll), flags, client_callback, context, &error))
 				return result;
             else
 			{
@@ -486,6 +489,7 @@
 	luaM__gc(browse_context_t)
 
 	conf0_callback_begin(browse_callback, AvahiServiceBrowser *browser, AvahiIfIndex interface_, AvahiProtocol protocol, AvahiBrowserEvent event_, const char *name, const char *type, const char *domain, AvahiLookupResultFlags flags)
+        printf("JODER\n");
 		luaM_setfield(-1, integer, interface_, interface_)
 		luaM_setfield(-1, integer, protocol, protocol)
 		luaM_setfield(-1, integer, event_, event_)
@@ -495,16 +499,26 @@
 		luaM_setfield(-1, integer, flags, flags)
 	conf0_callback_end(browse_callback)
 
+ void browse_callback1( AvahiServiceBrowser *b,AvahiIfIndex interface,AvahiProtocol protocol,AvahiBrowserEvent event,const char *name,const char *type,const char *domain,AvahiLookupResultFlags flags,void *userdata)
+ {
+    printf("JODER111\n");
+ }
+
 	luaM_func_begin(browse)
+        printf("JODER1\n");
 		luaM_reqd_param(userdata, client)
 		client_context_t* client_context = (client_context_t*)client;
+		printf("JODER2 %x\n", client_context);
 		luaM_opt_param(integer, interface_, 0)
 		luaM_opt_param(integer, protocol, AVAHI_PROTO_UNSPEC)
 		luaM_reqd_param(string, type)
+		printf("JODER3\n");
 		luaM_opt_param(string, domain, nullptr)
 		luaM_opt_param(integer, flags, 0)
 		luaM_reqd_param(function, callback)
+		printf("JODER4 %x %d %x\n", L, callback, client_context);
 		luaM_return_userdata(browse_context_t, init, context, L, callback, client_context)
+		printf("JODER5\n");
 		conf0_call_dns_service(browser, avahi_service_browser_new, client_context->client, (AvahiIfIndex)interface_, (AvahiProtocol)protocol, type, domain, (AvahiLookupFlags)flags, browse_callback, context)
 	luaM_func_end
 
@@ -605,19 +619,21 @@
 		//conf0_call_dns_service(DNSServiceRegister, &context->ref, (DNSServiceFlags)flags, interface_, name, type, domain, host, port, textlen, text, register_callback, context)
 	luaM_func_end
 
-#   define conf0_reg_flag(NAME) luaM_setfield(-1, integer, NAME, AVAHI_LOOKUP_##NAME)
+#   define conf0_reg_flag(NAME) luaM_setfield(-1, integer, NAME, AVAHI_##NAME)
 	void conf0_reg_flags(lua_State *L)
 	{
-		conf0_reg_flag(USE_WIDE_AREA)
-		conf0_reg_flag(USE_MULTICAST)
-		conf0_reg_flag(NO_TXT)
-		conf0_reg_flag(NO_ADDRESS)
-		conf0_reg_flag(RESULT_CACHED)
-		conf0_reg_flag(RESULT_WIDE_AREA)
-		conf0_reg_flag(RESULT_MULTICAST)
-		conf0_reg_flag(RESULT_LOCAL)
-		conf0_reg_flag(RESULT_OUR_OWN)
-		conf0_reg_flag(RESULT_STATIC)
+		conf0_reg_flag(LOOKUP_USE_WIDE_AREA)
+		conf0_reg_flag(LOOKUP_USE_MULTICAST)
+		conf0_reg_flag(LOOKUP_NO_TXT)
+		conf0_reg_flag(LOOKUP_NO_ADDRESS)
+		conf0_reg_flag(LOOKUP_RESULT_CACHED)
+		conf0_reg_flag(LOOKUP_RESULT_WIDE_AREA)
+		conf0_reg_flag(LOOKUP_RESULT_MULTICAST)
+		conf0_reg_flag(LOOKUP_RESULT_LOCAL)
+		conf0_reg_flag(LOOKUP_RESULT_OUR_OWN)
+		conf0_reg_flag(LOOKUP_RESULT_STATIC)
+		conf0_reg_flag(CLIENT_IGNORE_USER_CONFIG)
+		conf0_reg_flag(CLIENT_NO_FAIL)
 	}
 
 #	define conf0_reg_class(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceClass_##NAME)
@@ -655,6 +671,16 @@
         conf0_reg_event(RESOLVER_FAILURE)
 	}
 
+#   define conf0_reg_state(NAME) luaM_setfield(-1, integer, NAME, AVAHI_CLIENT_##NAME)
+	void conf0_reg_states(lua_State *L)
+	{
+        conf0_reg_state(S_REGISTERING)
+        conf0_reg_state(S_RUNNING)
+        conf0_reg_state(S_COLLISION)
+        conf0_reg_state(FAILURE)
+        conf0_reg_state(CONNECTING)
+	}
+
 #elif defined(OSX)
 #	error incompatible platform
 #else
@@ -690,6 +716,7 @@ extern "C"
 		conf0_reg_enum(errors)
 		conf0_reg_enum(protocols)
 		conf0_reg_enum(events)
+		conf0_reg_enum(states)
 		lua_setglobal(L, "conf0");
 		return 1;
 	}
