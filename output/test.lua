@@ -39,17 +39,21 @@ local items = {}
 local browser = conf0.browse{client = client, type = '_rtsp._tcp', callback = function(i) 
 	io.write('.')
 	items[#items + 1] = i
-	local resolver = conf0.resolve{client = client, name = i.name, type = i.type, domain = i.domain, callback=function(j)
-		io.write('.')
-		for k,v in pairs(j) do i[k] = v end
-		i.port = opaque2port(i.opaqueport)
-		local query = conf0.query{client = client, fullname = j.hosttarget, type = conf0.types.A, class_ = conf0.classes.IN, callback = function(k)
+	if i.name and i.type and i.domain then
+		local resolver = conf0.resolve{client = client, name = i.name, type = i.type, domain = i.domain, callback=function(j)
 			io.write('.')
-			i.ip = inet_ntoa(k.data)
+			for k,v in pairs(j) do i[k] = v end
+			i.port = opaque2port(i.opaqueport)
+			if j.hosttarget then
+				local query = conf0.query{client = client, fullname = j.hosttarget, type = conf0.types.A, class_ = conf0.classes.IN, callback = function(k)
+					io.write('.')
+					i.ip = inet_ntoa(k.data)
+				end}
+				conf0.iterate{ref=query}
+			end
 		end}
-		conf0.iterate{ref=query}
-	end}
-	conf0.iterate{ref=resolver}
+		conf0.iterate{ref=resolver}
+	end
 end}
 
 while conf0.iterate{ref=browser} do end
