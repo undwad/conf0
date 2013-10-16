@@ -164,8 +164,6 @@
 
 	/* QUERY */
 
-	extern const int record_class = kDNSServiceClass_IN;
-
 	conf0_callback_begin(query_callback, uint32_t interface_, DNSServiceErrorType error, const char* fullname, uint16_t type, uint16_t class_, uint16_t datalen, const void* data, uint32_t ttl)
 		luaM_setfield(-1, integer, interface_, interface_)
 		luaM_setfield(-1, string, fullname, fullname)
@@ -473,7 +471,7 @@
 		}
 	};
 
-	conf0_callback_begin(AvahiServiceBrowser *browser, AvahiIfIndex interface_, AvahiProtocol protocol, AvahiBrowserEvent event_, const char *name, const char *type, const char *domain, AvahiLookupResultFlags flags)
+	conf0_callback_begin(browse_callback, AvahiServiceBrowser *browser, AvahiIfIndex interface_, AvahiProtocol protocol, AvahiBrowserEvent event_, const char *name, const char *type, const char *domain, AvahiLookupResultFlags flags)
 		luaM_setfield(-1, integer, interface_, interface_)
 		luaM_setfield(-1, integer, protocol, protocol)
 		luaM_setfield(-1, integer, event_, event_)
@@ -498,48 +496,80 @@
 
 	/* RESOLVE */
 
-	conf0_callback_begin(resolve_callback, uint32_t interface_, DNSServiceErrorType error, const char* fullname, const char* hosttarget, uint16_t opaqueport, uint16_t textlen, const unsigned char* text)
+	struct resolve_context_t : base_context_t
+	{
+		AvahiServiceResolver* resolver;
+		resolve_context_t(lua_State* L_, int callback_, client_context_t* client_context_) : base_context_t(L_, callback_, client_context_), resolver(nullptr)  { }
+		virtual ~resolve_context_t() 
+		{ 
+			if(resolver)
+				conf0_resolver_free(resolver);
+		}
+	};
+
+	conf0_callback_begin(resolve_callback, AvahiServiceResolver *resolver, AvahiIfIndex interface_, AvahiProtocol protocol, AvahiResolverEvent event_, const char *name, const char *type, const char *domain, const char *targethost, const AvahiAddress *a, uint16_t opaqueport, AvahiStringList *txt, AvahiLookupResultFlags flags)
 		luaM_setfield(-1, integer, interface_, interface_)
-		luaM_setfield(-1, string, fullname, fullname)
-		luaM_setfield(-1, string, hosttarget, hosttarget)
-		luaM_setfield(-1, integer, opaqueport, opaqueport)
-		luaM_setfield(-1, integer, textlen, textlen)
-		luaM_setfield(-1, lstring, text, (const char*)text, textlen)
+		luaM_setfield(-1, integer, protocol, protocol)
+		luaM_setfield(-1, integer, event_, event_)
+		luaM_setfield(-1, string, name, name)
+		luaM_setfield(-1, string, type, type)
+		luaM_setfield(-1, string, domain, domain)
+		luaM_setfield(-1, string, targethost, targethost)
+		luaM_setfield(-1, integer, port, port)
+		luaM_setfield(-1, integer, flags, flags)
 	conf0_callback_end(resolve_callback)
 
 	luaM_func_begin(resolve)
-		luaM_opt_param(integer, flags, 0)
+		luaM_reqd_param(userdata, client)
+		client_context_t* client_context = (client_context_t*)client;
 		luaM_opt_param(integer, interface_, 0)
+		luaM_opt_param(integer, protocol, AVAHI_PROTO_UNSPEC)
 		luaM_reqd_param(string, name)
 		luaM_reqd_param(string, type)
 		luaM_reqd_param(string, domain)
+		luaM_opt_param(integer, aprotocol, AVAHI_PROTO_UNSPEC)
+		luaM_opt_param(integer, flags, 0)
 		luaM_reqd_param(function, callback)
-		luaM_return_userdata(context_t, context, L, callback)
-		conf0_call_dns_service(DNSServiceResolve, &context->ref, (DNSServiceFlags)flags, interface_, name, type, domain, resolve_callback, context)
+		luaM_return_userdata(resolve_context_t, context, L, callback, client_context)
+		conf0_call_dns_service(resolver, avahi_service_resolver_new, client_context->client, (AvahiIfIndex)interface_, (AvahiProtocol)protocol, name, type, domain, (AvahiProtocol)aprotocol, (AvahiLookupFlags)flags, resolve_callback, context)
 	luaM_func_end
 
 	/* QUERY */
 
-	extern const int record_class = kDNSServiceClass_IN;
+	struct query_context_t : base_context_t
+	{
+		AvahiRecordBrowser* browser;
+		query_context_t(lua_State* L_, int callback_, client_context_t* client_context_) : base_context_t(L_, callback_, client_context_), browser(nullptr)  { }
+		virtual ~query_context_t() 
+		{ 
+			if(browser)
+				conf0_record_browser_free(browser);
+		}
+	};
 
-	conf0_callback_begin(query_callback, uint32_t interface_, DNSServiceErrorType error, const char* fullname, uint16_t type, uint16_t class_, uint16_t datalen, const void* data, uint32_t ttl)
+	conf0_callback_begin(query_callback, AvahiRecordBrowser *resolver, AvahiIfIndex interface_, AvahiProtocol protocol, AvahiRecordBrowser event_, const char *fullname, uint16_t class_, uint16_t type, const void *data, size_t datalen, AvahiLookupResultFlags flags)
 		luaM_setfield(-1, integer, interface_, interface_)
+		luaM_setfield(-1, integer, protocol, protocol)
+		luaM_setfield(-1, integer, event_, event_)
 		luaM_setfield(-1, string, fullname, fullname)
-		luaM_setfield(-1, integer, type, type)
 		luaM_setfield(-1, integer, class_, class_)
-		luaM_setfield(-1, integer, datalen, datalen)
-		luaM_setfield(-1, lstring, data, (const char*)data, datalen)
+		luaM_setfield(-1, integer, type, type)
+		luaM_setfield(-1, string, data, (const char*)data)
+		luaM_setfield(-1, integer, flags, flags)
 	conf0_callback_end(query_callback)
 
 	luaM_func_begin(query)
-		luaM_opt_param(integer, flags, 0)
+		luaM_reqd_param(userdata, client)
+		client_context_t* client_context = (client_context_t*)client;
 		luaM_opt_param(integer, interface_, 0)
+		luaM_opt_param(integer, protocol, AVAHI_PROTO_UNSPEC)
 		luaM_reqd_param(string, fullname)
-		luaM_reqd_param(integer, type)
-		luaM_reqd_param(integer, class_)
+		luaM_reqd_param(integer, type, 0)
+		luaM_reqd_param(integer, class_, 0)
+		luaM_opt_param(integer, flags, 0)
 		luaM_reqd_param(function, callback)
-		luaM_return_userdata(context_t, context, L, callback)
-		conf0_call_dns_service(DNSServiceQueryRecord, &context->ref, (DNSServiceFlags)flags, interface_, fullname, type, class_, query_callback, context)
+		luaM_return_userdata(query_context_t, context, L, callback, client_context)
+		conf0_call_dns_service(browser, avahi_record_browser_new, client_context->client, (AvahiIfIndex)interface_, (AvahiProtocol)protocol, fullname, type, class_, (AvahiLookupFlags)flags, query_callback, context)
 	luaM_func_end
 
 	/* REGISTER */
