@@ -452,7 +452,7 @@
 
 	luaM__gc(resolve_context_t)
 
-	conf0_callback_begin(resolve_callback, AvahiServiceResolver *resolver, AvahiIfIndex interface_, AvahiProtocol protocol, AvahiResolverEvent event_, const char *name, const char *type, const char *domain, const char *targethost, const AvahiAddress *a, uint16_t opaqueport, AvahiStringList *txt, AvahiLookupResultFlags flags)
+	conf0_callback_begin(resolve_callback, AvahiServiceResolver *resolver, AvahiIfIndex interface_, AvahiProtocol protocol, AvahiResolverEvent event_, const char *name, const char *type, const char *domain, const char *targethost, const AvahiAddress *address, uint16_t opaqueport, AvahiStringList *txt, AvahiLookupResultFlags flags)
 		luaM_setfield(-1, integer, interface_, interface_)
 		luaM_setfield(-1, integer, protocol, protocol)
 		luaM_setfield(-1, integer, event_, event_)
@@ -463,6 +463,8 @@
 		luaM_setfield(-1, integer, opaqueport, opaqueport)
 		luaM_setfield(-1, string, text, avahi_string_list_to_string(txt))
 		luaM_setfield(-1, string, cookie, avahi_string_list_get_service_cookie(txt))
+		if(address)
+            luaM_setfield(-1, lstring, address, (const char*)&address->data, sizeof(address->data));
 		luaM_setfield(-1, integer, flags, flags)
 	conf0_callback_end(resolve_callback)
 
@@ -664,7 +666,7 @@
 #	error incompatible platform
 #endif
 
-#undef IN 
+#undef IN
 #define conf0_reg_class(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceClass_##NAME)
 void conf0_reg_classes(lua_State *L) // query | query callback
 {
