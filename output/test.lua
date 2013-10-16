@@ -39,7 +39,7 @@ local browser = conf0.browse{type = '_rtsp._tcp', callback = function(i)
 	print('BROWSER', i)
 	items[#items + 1] = i
 	if i.name and i.type and i.domain then
-		local resolver = conf0.resolve{name = i.name, type = i.type, domain = i.domain, callback=function(j)
+		local resolver = conf0.resolve{name = i.name, type = i.type, domain = i.domain, callback = function(j)
 			io.write('.')
 			print('RESOLVER', j)
 			for k,v in pairs(j) do i[k] = v end
