@@ -464,7 +464,10 @@
 		luaM_setfield(-1, string, text, avahi_string_list_to_string(txt))
 		luaM_setfield(-1, string, cookie, avahi_string_list_get_service_cookie(txt))
 		if(address)
-            luaM_setfield(-1, lstring, address, (const char*)&address->data, sizeof(address->data));
+		{
+			luaM_setfield(-1, integer, protocol, address->protocol)
+			luaM_setfield(-1, lstring, address, (const char*)&address->data, AVAHI_PROTO_INET6 == address->protocol ? sizeof(AvahiIPv6Address) : sizeof(AvahiIPv4Address))
+		}
 		luaM_setfield(-1, integer, flags, flags)
 	conf0_callback_end(resolve_callback)
 
