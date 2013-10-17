@@ -27,7 +27,6 @@ end
 port2opaque = opaque2port
 
 function execute(params)
-	local pref =  params.ref
 	local ref
 	local callback = params.callback
 	params.callback = function(res)
@@ -37,7 +36,7 @@ function execute(params)
 		end
 	end
 	ref = params.proc(params)
-	if not pref or 'avahi' ~= conf0.backend then
+	if not params.ref then
 		while ref and conf0.iterate{ref=ref} do end
 	end
 end
@@ -51,12 +50,14 @@ print(prettytostring(conf0))
 
 local items = {}
 
--- _http._tcp _rtsp._tcp
-execute{proc = conf0.browse, type = '_rtsp._tcp', callback = function(i) 
+local type = '_rtsp._tcp'
+--local type = '_http._tcp'
+
+execute{proc = conf0.browse, type = type, callback = function(i) 
 	io.write('.')
 	if i.name and i.type and i.domain and not items[i.name] then
 		items[i.name] = i
-		execute{proc = conf0.resolve, ref = i.ref, interface_ = i.interface_, protocol = i.protocol, name = i.name, type = i.type, domain = i.domain, callback = function(j)
+		execute{proc = conf0.resolve, ref = 'avahi' == conf0.backend and i.ref or nil, interface_ = i.interface_, protocol = i.protocol, name = i.name, type = i.type, domain = i.domain, callback = function(j)
 			io.write('.')
 			for k,v in pairs(j) do i[k] = v end
 			if i.opaqueport then
@@ -64,7 +65,7 @@ execute{proc = conf0.browse, type = '_rtsp._tcp', callback = function(i)
 			end
 			if 'bonjour' == conf0.backend then
 				if j.hosttarget then
-					execute{proc = conf0.query, ref = j.ref, fullname = j.hosttarget, type = conf0.types.A, class_ = conf0.classes.IN, callback = function(k)
+					execute{proc = conf0.query, ref = 'avahi' == conf0.backend and j.ref or nil, fullname = j.hosttarget, type = conf0.types.A, class_ = conf0.classes.IN, callback = function(k)
 						io.write('.')
 						i.ip = inet_ntoa(k.data)
 						return true
