@@ -541,6 +541,7 @@
             delete context;
             return luaL_error(L, avahi_strerror(avahi_client_errno(context->client)));
         }
+		avahi_entry_group_commit(group);
 	luaM_func_end
 
     /* ENUMS */
