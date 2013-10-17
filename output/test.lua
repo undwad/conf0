@@ -27,6 +27,7 @@ end
 port2opaque = opaque2port
 
 function execute(params)
+	local pref =  params.ref
 	local ref
 	local callback = params.callback
 	params.callback = function(res)
@@ -36,7 +37,9 @@ function execute(params)
 		end
 	end
 	ref = params.proc(params)
-	while ref and conf0.iterate{ref=ref} do end
+	if not pref or 'avahi' ~= conf0.backend then
+		while ref and conf0.iterate{ref=ref} do end
+	end
 end
 
 print(prettytostring(conf0))
