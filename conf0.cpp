@@ -354,6 +354,7 @@
 		} \
         else if(context->poll = avahi_simple_poll_new()) \
         { \
+			sigint_install(context->poll); \
             int error; \
             if(context->client = avahi_client_new(avahi_simple_poll_get(context->poll), flags, client_callback, context, &error)) \
             { \
