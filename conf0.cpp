@@ -560,6 +560,7 @@
 		printf("3\n");
 		conf0_call_dns_service_proc(avahi_entry_group_commit, context->group)
 		printf("4\n");
+		printf("5\n");
 	luaM_func_end
 
     /* ENUMS */
