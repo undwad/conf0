@@ -273,10 +273,10 @@
 
 #   include <avahi-client/client.h>
 #   include <avahi-client/lookup.h>
-
 #   include <avahi-common/simple-watch.h>
 #   include <avahi-common/malloc.h>
 #   include <avahi-common/error.h>
+#   include <avahi-client/publish.h>
 
 	const char* backend = "avahi";
 
@@ -333,7 +333,7 @@
 		}
 	};
 
-	static void client_callback(AvahiClient *c, AvahiClientState state, AVAHI_GCC_UNUSED void * userdata) { }
+	static void client_callback(AvahiClient *c, AvahiClientState state, void * userdata) { }
 
 #   define avahi_alloc_client() \
 		luaM_opt_param(userdata, ref, nullptr) \
@@ -503,6 +503,23 @@
 
 	/* REGISTER */
 
+	struct register_context_t : context_t
+	{
+		AvahiEntryGroup* group;
+		virtual ~register_context_t()
+		{
+			if(group)
+				avahi_entry_group_free(group);
+		}
+	};
+
+	luaM__gc(register_context_t)
+
+    static void group_callback(AvahiEntryGroup *group, AvahiEntryGroupState state, void *userdata) { }
+	conf0_callback_begin(group_callback, AvahiEntryGroup *group, AvahiEntryGroupState state)
+		luaM_setfield(-1, integer, state, state)
+	conf0_callback_end(group_callback)
+
 	luaM_func_begin(register_)
 		luaM_opt_param(integer, flags, 0)
 		luaM_opt_param(integer, interface_, 0)
@@ -514,8 +531,9 @@
 		luaM_opt_param(integer, textlen, 0)
 		luaM_opt_param(string, text, nullptr)
 		luaM_reqd_param(function, callback)
-		//luaM_return_userdata(context_t, init, context, L, callback)
-		//conf0_call_dns_service(DNSServiceRegister, &context->ref, (DNSServiceFlags)flags, interface_, name, type, domain, host, port, textlen, text, register_callback, context)
+		luaM_return_userdata(register_context_t, init, context, L, callback)
+		avahi_alloc_client()
+		conf0_call_dns_service(group, avahi_entry_group_new, context->client, group_callback, context)
 	luaM_func_end
 
 #   define conf0_reg_flag(NAME) luaM_setfield(-1, integer, NAME, AVAHI_##NAME)
@@ -560,14 +578,19 @@
         conf0_reg_event(RESOLVER_FAILURE)
 	}
 
-#   define conf0_reg_state(NAME) luaM_setfield(-1, integer, NAME, AVAHI_CLIENT_##NAME)
+#   define conf0_reg_state(NAME) luaM_setfield(-1, integer, NAME, AVAHI_##NAME)
 	void conf0_reg_states(lua_State *L)
 	{
-        conf0_reg_state(S_REGISTERING)
-        conf0_reg_state(S_RUNNING)
-        conf0_reg_state(S_COLLISION)
-        conf0_reg_state(FAILURE)
-        conf0_reg_state(CONNECTING)
+        conf0_reg_state(CLIENT_S_REGISTERING)
+        conf0_reg_state(CLIENT_S_RUNNING)
+        conf0_reg_state(CLIENT_S_COLLISION)
+        conf0_reg_state(CLIENT_FAILURE)
+        conf0_reg_state(CLIENT_CONNECTING)
+        conf0_reg_state(ENTRY_GROUP_UNCOMMITED)
+        conf0_reg_state(ENTRY_GROUP_REGISTERING)
+        conf0_reg_state(ENTRY_GROUP_ESTABLISHED)
+        conf0_reg_state(ENTRY_GROUP_COLLISION)
+        conf0_reg_state(ENTRY_GROUP_FAILURE)
 	}
 
 	void conf0_reg_interfaces(lua_State *L) { luaM_setfield(-1, integer, UNSPEC, AVAHI_IF_UNSPEC) }
