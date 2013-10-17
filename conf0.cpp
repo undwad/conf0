@@ -345,6 +345,8 @@
 
 	static void client_callback(AvahiClient *c, AvahiClientState state, void * userdata) { }
 
+			//sigint_install(context->poll); \
+
 #   define avahi_alloc_client() \
 		luaM_opt_param(userdata, ref, nullptr) \
 		if(ref) \
@@ -355,7 +357,6 @@
 		} \
         else if(context->poll = avahi_simple_poll_new()) \
         { \
-			sigint_install(context->poll); \
             int error; \
             if(context->client = avahi_client_new(avahi_simple_poll_get(context->poll), flags, client_callback, context, &error)) \
             { \
