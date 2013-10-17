@@ -203,6 +203,8 @@
 		conf0_call_dns_service(DNSServiceRegister, &context->ref, (DNSServiceFlags)flags, interface_, name, type, domain, host, port, textlen, text, register_callback, context)
 	luaM_func_end
 
+    /* ENUMS */
+
 #	define conf0_reg_flag(NAME) luaM_setfield(-1, integer, NAME, kDNSServiceFlags##NAME)
 	void conf0_reg_flags(lua_State *L)
 	{
@@ -515,7 +517,6 @@
 
 	luaM__gc(register_context_t)
 
-    static void group_callback(AvahiEntryGroup *group, AvahiEntryGroupState state, void *userdata) { }
 	conf0_callback_begin(group_callback, AvahiEntryGroup *group, AvahiEntryGroupState state)
 		luaM_setfield(-1, integer, state, state)
 	conf0_callback_end(group_callback)
@@ -523,6 +524,7 @@
 	luaM_func_begin(register_)
 		luaM_opt_param(integer, flags, 0)
 		luaM_opt_param(integer, interface_, 0)
+		luaM_opt_param(integer, protocol, 0)
 		luaM_opt_param(string, name, nullptr)
 		luaM_reqd_param(string, type)
 		luaM_opt_param(string, domain, nullptr)
@@ -534,7 +536,14 @@
 		luaM_return_userdata(register_context_t, init, context, L, callback)
 		avahi_alloc_client()
 		conf0_call_dns_service(group, avahi_entry_group_new, context->client, group_callback, context)
+		if(avahi_entry_group_add_service_strlst(context->group, interface_, protocol, flags, name, type, domain, host, port, avahi_string_list_add_arbitrary(nullptr, text, textlen)) < 0)
+        {
+            delete context;
+            return luaL_error(L, avahi_strerror(avahi_client_errno(context->client)));
+        }
 	luaM_func_end
+
+    /* ENUMS */
 
 #   define conf0_reg_flag(NAME) luaM_setfield(-1, integer, NAME, AVAHI_##NAME)
 	void conf0_reg_flags(lua_State *L)
