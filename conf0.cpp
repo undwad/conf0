@@ -546,13 +546,13 @@
 		printf("1\n");
 		conf0_call_dns_service(group, avahi_entry_group_new, context->client, group_callback, context)
 		printf("2 %x\n", context->group);
+		printf("%x %d %d %d %s %s %s %s %d \n", context->group, interface_, protocol, flags, name, type, domain, host, port);
 		if(text)
 		{
 			conf0_call_dns_service_proc(avahi_entry_group_add_service_strlst, context->group, interface_, protocol, flags, name, type, domain, host, port, avahi_string_list_add_arbitrary(nullptr, text, textlen))
 		}
 		else
 		{
-			printf("%x %d %d %d %s %s %s %s %d", context->group, interface_, protocol, flags, name, type, domain, host, port);
 			conf0_call_dns_service_proc(avahi_entry_group_add_service, context->group, interface_, protocol, flags, name, type, domain, host, port)
 		}
 		printf("3\n");
