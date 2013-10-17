@@ -415,7 +415,7 @@
 	conf0_callback_end(browse_callback)
 
 	luaM_func_begin(browse)
-		luaM_opt_param(integer, interface_, -1)
+		luaM_opt_param(integer, interface_, AVAHI_IF_UNSPEC)
 		luaM_opt_param(integer, protocol, AVAHI_PROTO_UNSPEC)
 		luaM_reqd_param(string, type)
 		luaM_opt_param(string, domain, nullptr)
@@ -461,7 +461,7 @@
 	conf0_callback_end(resolve_callback)
 
 	luaM_func_begin(resolve)
-		luaM_opt_param(integer, interface_, 0)
+		luaM_opt_param(integer, interface_, AVAHI_IF_UNSPEC)
 		luaM_opt_param(integer, protocol, AVAHI_PROTO_UNSPEC)
 		luaM_reqd_param(string, name)
 		luaM_reqd_param(string, type)
@@ -500,7 +500,7 @@
 	conf0_callback_end(query_callback)
 
 	luaM_func_begin(query)
-		luaM_opt_param(integer, interface_, 0)
+		luaM_opt_param(integer, interface_, AVAHI_IF_UNSPEC)
 		luaM_opt_param(integer, protocol, AVAHI_PROTO_UNSPEC)
 		luaM_reqd_param(string, fullname)
 		luaM_reqd_param(integer, type)
@@ -532,8 +532,8 @@
 
 	luaM_func_begin(register_)
 		luaM_opt_param(integer, flags, 0)
-		luaM_opt_param(integer, interface_, 0)
-		luaM_opt_param(integer, protocol, 0)
+		luaM_opt_param(integer, interface_, AVAHI_IF_UNSPEC)
+		luaM_opt_param(integer, protocol, AVAHI_PROTO_UNSPEC)
 		luaM_opt_param(string, name, nullptr)
 		luaM_reqd_param(string, type)
 		luaM_opt_param(string, domain, nullptr)
