@@ -445,7 +445,7 @@
 			luaM_setfield(-1, integer, protocol, a->proto)
 			char address[AVAHI_ADDRESS_STR_MAX];
 			avahi_address_snprint(address, sizeof(address), a);
-			luaM_setfield(-1, lstring, address);
+			luaM_setfield(-1, string, address);
 		}
 		luaM_setfield(-1, integer, flags, flags)
 	conf0_callback_end(resolve_callback)
