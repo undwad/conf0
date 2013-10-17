@@ -138,10 +138,10 @@
 
 	/* RESOLVE */
 
-	conf0_callback_begin(resolve_callback, uint32_t interface_, DNSServiceErrorType error, const char* fullname, const char* hosttarget, uint16_t opaqueport, uint16_t textlen, const unsigned char* text)
+	conf0_callback_begin(resolve_callback, uint32_t interface_, DNSServiceErrorType error, const char* fullname, const char* host, uint16_t opaqueport, uint16_t textlen, const unsigned char* text)
 		luaM_setfield(-1, integer, interface_, interface_)
 		luaM_setfield(-1, string, fullname, fullname)
-		luaM_setfield(-1, string, hosttarget, hosttarget)
+		luaM_setfield(-1, string, host, host)
 		luaM_setfield(-1, integer, opaqueport, opaqueport)
 		luaM_setfield(-1, integer, textlen, textlen)
 		luaM_setfield(-1, lstring, text, (const char*)text, textlen)
@@ -429,14 +429,14 @@
 
 	luaM__gc(resolve_context_t)
 
-	conf0_callback_begin(resolve_callback, AvahiServiceResolver *resolver, AvahiIfIndex interface_, AvahiProtocol protocol, AvahiResolverEvent event_, const char *name, const char *type, const char *domain, const char *targethost, const AvahiAddress *address, uint16_t port, AvahiStringList *txt, AvahiLookupResultFlags flags)
+	conf0_callback_begin(resolve_callback, AvahiServiceResolver *resolver, AvahiIfIndex interface_, AvahiProtocol protocol, AvahiResolverEvent event_, const char *name, const char *type, const char *domain, const char *host, const AvahiAddress *address, uint16_t port, AvahiStringList *txt, AvahiLookupResultFlags flags)
 		luaM_setfield(-1, integer, interface_, interface_)
 		luaM_setfield(-1, integer, protocol, protocol)
 		luaM_setfield(-1, integer, event_, event_)
 		luaM_setfield(-1, string, name, name)
 		luaM_setfield(-1, string, type, type)
 		luaM_setfield(-1, string, domain, domain)
-		luaM_setfield(-1, string, targethost, targethost)
+		luaM_setfield(-1, string, host, host)
 		luaM_setfield(-1, integer, port, port)
 		luaM_setfield(-1, string, text, avahi_string_list_to_string(txt))
 		if(address)

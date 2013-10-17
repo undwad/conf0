@@ -50,8 +50,8 @@ print(prettytostring(conf0))
 
 local items = {}
 
-local type = '_rtsp._tcp'
---local type = '_http._tcp'
+--local type = '_rtsp._tcp'
+local type = '_http._tcp'
 
 execute{proc = conf0.browse, type = type, callback = function(i) 
 	io.write('.')
@@ -64,8 +64,8 @@ execute{proc = conf0.browse, type = type, callback = function(i)
 				i.port = opaque2port(i.opaqueport)
 			end
 			if 'bonjour' == conf0.backend then
-				if j.hosttarget then
-					execute{proc = conf0.query, ref = 'avahi' == conf0.backend and j.ref or nil, fullname = j.hosttarget, type = conf0.types.A, class_ = conf0.classes.IN, callback = function(k)
+				if j.host then
+					execute{proc = conf0.query, ref = 'avahi' == conf0.backend and j.ref or nil, fullname = j.host, type = conf0.types.A, class_ = conf0.classes.IN, callback = function(k)
 						io.write('.')
 						i.ip = inet_ntoa(k.data)
 						return true
