@@ -57,7 +57,7 @@ execute{proc = conf0.browse, type = '_rtsp._tcp', callback = function(i)
 	if i.name and i.type and i.domain and not items[i.name] then
 		print('BROWSER', i)
 		items[i.name] = i
-		execute{proc = conf0.resolve, ref = i.ref, name = i.name, type = i.type, domain = i.domain, callback = function(j)
+		execute{proc = conf0.resolve, ref = i.ref, interface_ = i.interface_, protocol = i.protocol, name = i.name, type = i.type, domain = i.domain, callback = function(j)
 			io.write('.')
 			print('RESOLVER', j)
 			for k,v in pairs(j) do i[k] = v end
