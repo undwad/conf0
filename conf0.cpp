@@ -339,7 +339,6 @@
 		luaM_opt_param(userdata, ref, nullptr) \
 		if(ref) \
 		{ \
-			printf("%x %x %x\n", ref, ((context_t*)ref)->poll, ((context_t*)ref)->client); \
 			context->poll = ((context_t*)ref)->poll; \
 			context->client = ((context_t*)ref)->client; \
 			context->copy = true; \
