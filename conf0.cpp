@@ -544,8 +544,7 @@
 		luaM_return_userdata(register_context_t, init, context, L, callback)
 		avahi_alloc_client()
 		conf0_call_dns_service(group, avahi_entry_group_new, context->client, group_callback, context)
-		//printf("%x %x %d %d %d %s %s %s %s %d %s\n", context->client, context->group, interface_, protocol, flags, name, type, domain, host, port, text);
-		avahi_entry_group_is_empty(context->group);
+		printf("%x %x %d %d %d %s %s %s %s %d %s\n", context->client, context->group, interface_, protocol, flags, name, type, domain, host, port, text);
 		if(text)
 		{
 			AvahiStringList* list = avahi_string_list_add_arbitrary(nullptr, text, textlen);
