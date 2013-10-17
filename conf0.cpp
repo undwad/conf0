@@ -279,6 +279,7 @@
 #   include <avahi-common/malloc.h>
 #   include <avahi-common/error.h>
 #   include <avahi-client/publish.h>
+#	include <avahi-common/i18n.h>
 
 	const char* backend = "avahi";
 
