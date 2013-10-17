@@ -298,13 +298,20 @@
 		} \
 	}
 
-# define conf0_call_dns_service(RESULT, FUNC, ...) \
-	context->RESULT = FUNC(__VA_ARGS__); \
-	if(!context->RESULT) \
-	{ \
-		delete context; \
-		return luaL_error(L, avahi_strerror(avahi_client_errno(context->client))); \
-	}
+#	define conf0_call_dns_service(RESULT, FUNC, ...) \
+		context->RESULT = FUNC(__VA_ARGS__); \
+		if(!context->RESULT) \
+		{ \
+			delete context; \
+			return luaL_error(L, avahi_strerror(avahi_client_errno(context->client))); \
+		}
+
+#	define conf0_call_dns_service_proc(PROC, ...) \
+		if(PROC(__VA_ARGS__) < 0) \
+		{ \
+			delete context; \
+			return luaL_error(L, avahi_strerror(avahi_client_errno(context->client))); \
+		}
 
 	/* COMMON */
 
@@ -536,12 +543,8 @@
 		luaM_return_userdata(register_context_t, init, context, L, callback)
 		avahi_alloc_client()
 		conf0_call_dns_service(group, avahi_entry_group_new, context->client, group_callback, context)
-		if(avahi_entry_group_add_service_strlst(context->group, interface_, protocol, flags, name, type, domain, host, port, avahi_string_list_add_arbitrary(nullptr, text, textlen)) < 0)
-        {
-            delete context;
-            return luaL_error(L, avahi_strerror(avahi_client_errno(context->client)));
-        }
-		avahi_entry_group_commit(context->group);
+		conf0_call_dns_service_proc(avahi_entry_group_add_service_strlst, context->group, interface_, protocol, flags, name, type, domain, host, port, avahi_string_list_add_arbitrary(nullptr, text, textlen))
+		conf0_call_dns_service_proc(avahi_entry_group_commit, context->group)
 	luaM_func_end
 
     /* ENUMS */
