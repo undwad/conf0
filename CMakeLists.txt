@@ -23,6 +23,7 @@ endif (AVAHI_FOUND)
 
 file (GLOB FILES
 	"*.h"
+	"*.c"
 	"*.cpp"
 )
 
