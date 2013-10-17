@@ -59,7 +59,7 @@ execute{proc = conf0.browse, type = '_rtsp._tcp', callback = function(i)
 		items[i.name] = i
 		execute{proc = conf0.resolve, ref = i.ref, interface_ = i.interface_, protocol = i.protocol, name = i.name, type = i.type, domain = i.domain, callback = function(j)
 			io.write('.')
-			print('RESOLVER', i)
+			print('RESOLVER', j)
 			for k,v in pairs(j) do i[k] = v end
 			i.port = opaque2port(i.opaqueport)
 			if 'bonjour' == conf0.backend then
