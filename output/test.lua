@@ -45,8 +45,7 @@ function execute(params)
 	end
 end
 
-local registrator = conf0.register_{type = "_http._tcp", name = 'conf0test', port = port2opaque(5500), callback = function(res) print(prettytostring(res)) end}
-conf0.iterate{ref=registrator}
+execute{proc = conf0.register_, type = "_http._tcp", name = 'conf0test', port = port2opaque(5500), callback = function(res) print(prettytostring(res)) end}
 
 --local type = '_rtsp._tcp'
 local type = '_http._tcp'
