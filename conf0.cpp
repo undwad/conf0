@@ -552,6 +552,7 @@
 		}
 		else
 		{
+			printf("%x %d %d %d %s %s %s %s %d", context->group, interface_, protocol, flags, name, type, domain, host, port);
 			conf0_call_dns_service_proc(avahi_entry_group_add_service, context->group, interface_, protocol, flags, name, type, domain, host, port)
 		}
 		printf("3\n");
