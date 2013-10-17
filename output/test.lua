@@ -47,7 +47,7 @@ end
 
 function passref(ref) return 'avahi' == conf0.backend and ref or nil end
 
---local registrator = conf0.register_{type = "_http._tcp", name = 'conf0test', port = port2opaque(5500), callback = function(res) print(prettytostring(res)) end}
+local registrator = conf0.register_{type = "_http._tcp", name = 'conf0test', port = port2opaque(5500), callback = function(res) print(prettytostring(res)) end}
 
 --local type = '_rtsp._tcp'
 local type = '_http._tcp'
