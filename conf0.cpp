@@ -544,7 +544,8 @@
 		luaM_return_userdata(register_context_t, init, context, L, callback)
 		avahi_alloc_client()
 		conf0_call_dns_service(group, avahi_entry_group_new, context->client, group_callback, context)
-		conf0_call_dns_service_proc(avahi_entry_group_add_service_strlst, context->group, interface_, protocol, flags, name, type, domain, host, port, avahi_string_list_add_arbitrary(nullptr, text, textlen))
+		conf0_call_dns_service_proc(avahi_entry_group_add_service, context->group, interface_, protocol, flags, name, type, domain, host, port)
+		//conf0_call_dns_service_proc(avahi_entry_group_add_service_strlst, context->group, interface_, protocol, flags, name, type, domain, host, port, avahi_string_list_add_arbitrary(nullptr, text, textlen))
 		conf0_call_dns_service_proc(avahi_entry_group_commit, context->group)
 	luaM_func_end
 
