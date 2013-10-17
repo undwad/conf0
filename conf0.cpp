@@ -279,7 +279,6 @@
 #   include <avahi-common/malloc.h>
 #   include <avahi-common/error.h>
 #   include <avahi-client/publish.h>
-#	include "sigint.h"
 
 	const char* backend = "avahi";
 
@@ -345,7 +344,6 @@
 
 	static void client_callback(AvahiClient *c, AvahiClientState state, void * userdata) { }
 
-			//sigint_install(context->poll); \
 
 #   define avahi_alloc_client() \
 		luaM_opt_param(userdata, ref, nullptr) \
