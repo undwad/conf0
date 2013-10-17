@@ -55,17 +55,14 @@ local items = {}
 execute{proc = conf0.browse, type = '_rtsp._tcp', callback = function(i) 
 	io.write('.')
 	if i.name and i.type and i.domain and not items[i.name] then
-		print('BROWSER', i)
 		items[i.name] = i
 		execute{proc = conf0.resolve, ref = i.ref, interface_ = i.interface_, protocol = i.protocol, name = i.name, type = i.type, domain = i.domain, callback = function(j)
 			io.write('.')
-			print('RESOLVER', j)
 			for k,v in pairs(j) do i[k] = v end
 			i.port = opaque2port(i.opaqueport)
 			if j.hosttarget then
 				execute{proc = conf0.query, ref = j.ref, fullname = j.hosttarget, type = conf0.types.A, class_ = conf0.classes.IN, callback = function(k)
 					io.write('.')
-					print('QUERY', k)
 					i.ip = inet_ntoa(k.data)
 					return true
 				end}

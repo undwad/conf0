@@ -430,7 +430,7 @@
 
 	luaM__gc(resolve_context_t)
 
-	conf0_callback_begin(resolve_callback, AvahiServiceResolver *resolver, AvahiIfIndex interface_, AvahiProtocol protocol, AvahiResolverEvent event_, const char *name, const char *type, const char *domain, const char *targethost, const AvahiAddress *address, uint16_t opaqueport, AvahiStringList *txt, AvahiLookupResultFlags flags)
+	conf0_callback_begin(resolve_callback, AvahiServiceResolver *resolver, AvahiIfIndex interface_, AvahiProtocol protocol, AvahiResolverEvent event_, const char *name, const char *type, const char *domain, const char *targethost, const AvahiAddress *a, uint16_t opaqueport, AvahiStringList *txt, AvahiLookupResultFlags flags)
 		luaM_setfield(-1, integer, interface_, interface_)
 		luaM_setfield(-1, integer, protocol, protocol)
 		luaM_setfield(-1, integer, event_, event_)
@@ -440,10 +440,12 @@
 		luaM_setfield(-1, string, targethost, targethost)
 		luaM_setfield(-1, integer, opaqueport, opaqueport)
 		luaM_setfield(-1, string, text, avahi_string_list_to_string(txt))
-		if(address)
+		if(a)
 		{
-			luaM_setfield(-1, integer, protocol, address->proto)
-			luaM_setfield(-1, lstring, address, (const char*)&address->data, AVAHI_PROTO_INET6 == address->proto ? sizeof(AvahiIPv6Address) : sizeof(AvahiIPv4Address))
+			luaM_setfield(-1, integer, protocol, a->proto)
+			char address[AVAHI_ADDRESS_STR_MAX];
+			avahi_address_snprint(address, sizeof(address), a);
+			luaM_setfield(-1, lstring, address);
 		}
 		luaM_setfield(-1, integer, flags, flags)
 	conf0_callback_end(resolve_callback)
