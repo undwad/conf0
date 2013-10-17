@@ -74,6 +74,7 @@ execute{proc = conf0.browse, type = '_rtsp._tcp', callback = function(i)
 			return true
 		end}
 	end
+	return 'avahi' == conf0.backend and conf0.events.BROWSER_ALL_FOR_NOW == i.event_
 end}
 
 print(prettytostring(items))	

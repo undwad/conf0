@@ -267,7 +267,7 @@
 
 	void conf0_reg_states(lua_State *L) { }
 
-	void conf0_reg_interfaces(lua_State *L) { luaM_setfield(-1, integer, "UNSPEC", 0) }
+	void conf0_reg_interfaces(lua_State *L) { luaM_setfield(-1, integer, UNSPEC, 0) }
 
 #elif defined(LINUX)
 
@@ -430,7 +430,7 @@
 
 	luaM__gc(resolve_context_t)
 
-	conf0_callback_begin(resolve_callback, AvahiServiceResolver *resolver, AvahiIfIndex interface_, AvahiProtocol protocol, AvahiResolverEvent event_, const char *name, const char *type, const char *domain, const char *targethost, const AvahiAddress *a, uint16_t opaqueport, AvahiStringList *txt, AvahiLookupResultFlags flags)
+	conf0_callback_begin(resolve_callback, AvahiServiceResolver *resolver, AvahiIfIndex interface_, AvahiProtocol protocol, AvahiResolverEvent event_, const char *name, const char *type, const char *domain, const char *targethost, const AvahiAddress *address, uint16_t opaqueport, AvahiStringList *txt, AvahiLookupResultFlags flags)
 		luaM_setfield(-1, integer, interface_, interface_)
 		luaM_setfield(-1, integer, protocol, protocol)
 		luaM_setfield(-1, integer, event_, event_)
@@ -440,12 +440,12 @@
 		luaM_setfield(-1, string, targethost, targethost)
 		luaM_setfield(-1, integer, opaqueport, opaqueport)
 		luaM_setfield(-1, string, text, avahi_string_list_to_string(txt))
-		if(a)
+		if(address)
 		{
-			luaM_setfield(-1, integer, protocol, a->proto)
-			char address[AVAHI_ADDRESS_STR_MAX];
-			avahi_address_snprint(address, sizeof(address), a);
-			luaM_setfield(-1, string, address, address);
+			luaM_setfield(-1, integer, protocol, address->proto)
+			char ip[AVAHI_ADDRESS_STR_MAX];
+			avahi_address_snprint(ip, sizeof(ip), address);
+			luaM_setfield(-1, string, ip, ip);
 		}
 		luaM_setfield(-1, integer, flags, flags)
 	conf0_callback_end(resolve_callback)
@@ -571,7 +571,7 @@
         conf0_reg_state(CONNECTING)
 	}
 
-	void conf0_reg_interfaces(lua_State *L) { luaM_setfield(-1, integer, "UNSPEC", AVAHI_IF_UNSPEC) }
+	void conf0_reg_interfaces(lua_State *L) { luaM_setfield(-1, integer, UNSPEC, AVAHI_IF_UNSPEC) }
 
 #	define kDNSServiceClass_IN        1
 
