@@ -24,9 +24,11 @@ if 'bonjour' == conf0.backend then
 		return byte(bytes, 4) * 256 + byte(bytes, 3)
 	end
 
-	port2opaque = opaque2port
-
+else 
+	function opaque2port(port) return port end
 end
+
+port2opaque = opaque2port
 
 function execute(params)
 	local ref
