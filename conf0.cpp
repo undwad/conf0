@@ -430,7 +430,7 @@
 
 	luaM__gc(resolve_context_t)
 
-	conf0_callback_begin(resolve_callback, AvahiServiceResolver *resolver, AvahiIfIndex interface_, AvahiProtocol protocol, AvahiResolverEvent event_, const char *name, const char *type, const char *domain, const char *targethost, const AvahiAddress *address, uint16_t opaqueport, AvahiStringList *txt, AvahiLookupResultFlags flags)
+	conf0_callback_begin(resolve_callback, AvahiServiceResolver *resolver, AvahiIfIndex interface_, AvahiProtocol protocol, AvahiResolverEvent event_, const char *name, const char *type, const char *domain, const char *targethost, const AvahiAddress *address, uint16_t port, AvahiStringList *txt, AvahiLookupResultFlags flags)
 		luaM_setfield(-1, integer, interface_, interface_)
 		luaM_setfield(-1, integer, protocol, protocol)
 		luaM_setfield(-1, integer, event_, event_)
@@ -438,7 +438,7 @@
 		luaM_setfield(-1, string, type, type)
 		luaM_setfield(-1, string, domain, domain)
 		luaM_setfield(-1, string, targethost, targethost)
-		luaM_setfield(-1, integer, opaqueport, opaqueport)
+		luaM_setfield(-1, integer, port, port)
 		luaM_setfield(-1, string, text, avahi_string_list_to_string(txt))
 		if(address)
 		{
