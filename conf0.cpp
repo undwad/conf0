@@ -210,8 +210,8 @@
 		luaM_opt_param(string, domain, nullptr)
 		luaM_opt_param(string, host, nullptr)
 		luaM_opt_param(integer, port, 0)
-		luaM_opt_param(integer, textlen, 0)
-		luaM_opt_param(string, text, nullptr)
+		luaM_opt_param(integer, textlen, 1)
+		luaM_opt_param(string, text, "\0")
 		luaM_reqd_param(function, callback)
 		luaM_return_userdata(context_t, context_t, context, L, callback)
 		conf0_call_dns_service(DNSServiceRegister, &context->ref, (DNSServiceFlags)flags, interface_, name, type, domain, host, port, textlen, text, register_callback, context)
@@ -567,24 +567,15 @@
 		luaM_opt_param(string, domain, nullptr)
 		luaM_opt_param(string, host, nullptr)
 		luaM_opt_param(integer, port, 0)
-		luaM_opt_param(integer, textlen, 0)
-		luaM_opt_param(string, text, "")
+		luaM_opt_param(integer, textlen, 1)
+		luaM_opt_param(string, text, "\0")
 		luaM_reqd_param(function, callback)
 		luaM_return_userdata(register_context_t, init, context, L, callback, (context_t*)ref)
 		conf0_call_dns_service(group, avahi_entry_group_new, context->client, group_callback, context)
-		printf("%x %x %x %x %d\n", ref, context, context->poll, context->client, callback);
-		printf("fuck1\n");
 		AvahiStringList* list = avahi_string_list_add_arbitrary(nullptr, text, textlen);
-		printf("fuck2 %x\n", list);
-		//sleep(2);
-		printf("%x %x %d %d %d %s %s %s %s %d %s\n", context->client, context->group, interface_, protocol, flags, name, type, domain, host, port, text);
 		conf0_call_dns_service_proc(avahi_entry_group_add_service_strlst, context->group, interface_, protocol, flags, name, type, domain, host, port, list)
-		//conf0_call_dns_service_proc(avahi_entry_group_add_service, context->group, interface_, protocol, flags, name, type, domain, host, port)
-		printf("fuck3\n");
 		avahi_string_list_free(list);
-		printf("fuck4\n");
 		conf0_call_dns_service_proc(avahi_entry_group_commit, context->group)
-		printf("JODER\n");
 	luaM_func_end
 
     /* ENUMS */

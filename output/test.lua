@@ -42,6 +42,7 @@ function execute(params)
 	if not params.ref then
 		while ref and conf0.iterate{ref=ref} do end
 	end
+	return ref
 end
 
 --local type = '_rtsp._tcp'
@@ -49,9 +50,8 @@ local type = '_http._tcp'
 local port = 5500
 local name = 'conf0test'
 
-
 execute{proc = conf0.connect, callback = function(res)
-	local registrator = conf0.register_{ref = res.ref, type = type, name = name, port = port2opaque(port), callback = function(res) print(prettytostring(res)) end}
+	execute{proc = conf0.register_, ref = res.ref, type = type, name = name, port = port2opaque(port), callback = function(res) print('registering', prettytostring(res)) end}
 	local items = {}
 	execute{proc = conf0.browse, ref = res.ref, type = type, callback = function(i) 
 		if i.name and i.type and i.domain and not items[i.name] then
