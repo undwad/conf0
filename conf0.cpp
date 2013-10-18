@@ -342,8 +342,10 @@
 		}
 	};
 
-	static void client_callback(AvahiClient *c, AvahiClientState state, void * userdata) { }
 
+	conf0_callback_begin(client_callback, AvahiClient *client, AvahiClientState state)
+		luaM_setfield(-1, integer, state, state)
+	conf0_callback_end(client_callback)
 
 #   define avahi_alloc_client() \
 		luaM_opt_param(userdata, ref, nullptr) \
