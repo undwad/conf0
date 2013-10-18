@@ -36,8 +36,10 @@
 #if defined(WIN32)
 #	include <winsock2.h>
 #else 
-#	include <netinet/in.h>
+#	include <netdb.h>
 #	include <sys/socket.h>
+#	include <netinet/in.h>
+#	include <arpa/inet.h>
 #endif
 
 luaM_func_begin(gethostbyname_)
