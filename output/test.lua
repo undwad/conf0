@@ -52,6 +52,7 @@ local name = 'conf0test'
 
 local client
 client = conf0.connect{callback = function(res)
+	print(client)
 	local registrator = conf0.register_{ref = client, type = type, name = name, port = port2opaque(port), callback = function(res) print(prettytostring(res)) end}
 
 	local items = {}
