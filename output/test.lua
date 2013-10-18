@@ -129,5 +129,6 @@ execute{ -- begin calling conf0.connect
 	end
 } -- end calling conf0.connect 
 
-	
+-- many functions have flags, interface, protocol etc. parameters that are set to default values
+-- check this in bonjour / avahi documentations and in conf0.flags, conf0.interfaces, conf0.protocols etc.
 
