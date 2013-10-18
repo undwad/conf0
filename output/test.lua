@@ -51,7 +51,7 @@ local name = 'conf0test'
 
 
 execute{proc = conf0.connect, callback = function(res)
-	--local registrator = conf0.register_{ref = res.ref, type = type, name = name, port = port2opaque(port), callback = function(res) print(prettytostring(res)) end}
+	local registrator = conf0.register_{ref = res.ref, type = type, name = name, port = port2opaque(port), callback = function(res) print(prettytostring(res)) end}
 	local items = {}
 	execute{proc = conf0.browse, ref = res.ref, type = type, callback = function(i) 
 		if i.name and i.type and i.domain and not items[i.name] then

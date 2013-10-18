@@ -287,6 +287,8 @@
 
 #elif defined(LINUX)
 
+#   include <unistd.h>
+
 #   include <avahi-client/client.h>
 #   include <avahi-client/lookup.h>
 #   include <avahi-common/simple-watch.h>
@@ -566,23 +568,21 @@
 		luaM_opt_param(string, host, nullptr)
 		luaM_opt_param(integer, port, 0)
 		luaM_opt_param(integer, textlen, 0)
-		luaM_opt_param(string, text, nullptr)
+		luaM_opt_param(string, text, "")
 		luaM_reqd_param(function, callback)
-		printf("%x %d\n", ref, callback);
-		printf("%x %x %x %d\n", ref, ((context_t*)ref)->poll, ((context_t*)ref)->client, callback);
 		luaM_return_userdata(register_context_t, init, context, L, callback, (context_t*)ref)
-		printf("%x %x %x %x %d\n", ref, context, context->poll, context->client, callback);
 		conf0_call_dns_service(group, avahi_entry_group_new, context->client, group_callback, context)
-		if(text)
-		{
-			AvahiStringList* list = avahi_string_list_add_arbitrary(nullptr, text, textlen);
-			conf0_call_dns_service_proc(avahi_entry_group_add_service_strlst, context->group, interface_, protocol, flags, name, type, domain, host, port, list)
-			avahi_string_list_free(list);
-		}
-		else
-		{
-			conf0_call_dns_service_proc(avahi_entry_group_add_service, context->group, interface_, protocol, flags, name, type, domain, host, port)
-		}
+		printf("%x %x %x %x %d\n", ref, context, context->poll, context->client, callback);
+		printf("fuck1\n");
+		AvahiStringList* list = avahi_string_list_add_arbitrary(nullptr, text, textlen);
+		printf("fuck2 %x\n", list);
+		//sleep(2);
+		printf("%x %x %d %d %d %s %s %s %s %d %s\n", context->client, context->group, interface_, protocol, flags, name, type, domain, host, port, text);
+		conf0_call_dns_service_proc(avahi_entry_group_add_service_strlst, context->group, interface_, protocol, flags, name, type, domain, host, port, list)
+		//conf0_call_dns_service_proc(avahi_entry_group_add_service, context->group, interface_, protocol, flags, name, type, domain, host, port)
+		printf("fuck3\n");
+		avahi_string_list_free(list);
+		printf("fuck4\n");
 		conf0_call_dns_service_proc(avahi_entry_group_commit, context->group)
 		printf("JODER\n");
 	luaM_func_end
