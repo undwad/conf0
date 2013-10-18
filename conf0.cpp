@@ -47,6 +47,7 @@
 		lua_State *L = context->L; \
 		lua_rawgeti(L, LUA_REGISTRYINDEX, context->callback); \
 		lua_newtable(L); \
+		luaM_setfield(-1, lightuserdata, ref, userdata) \
 		luaM_setfield(-1, integer, flags, flags)
 
 #	define conf0_callback_end(CALLBACK) \
@@ -87,7 +88,8 @@
 	luaM_func_begin(connect)
 		luaM_reqd_param(function, callback)
 		lua_rawgeti(L, LUA_REGISTRYINDEX, callback);
-		int error = lua_pcall(L, 0, 0, 0);
+		lua_newtable(L); 
+		int error = lua_pcall(L, 1, 0, 0);
 		luaL_unref(L, LUA_REGISTRYINDEX, callback);
 		if(error)
 			return lua_error(L);
