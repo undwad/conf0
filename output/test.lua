@@ -45,8 +45,8 @@ function execute(params)
 	return ref
 end
 
---local type = '_rtsp._tcp'
-local type = '_http._tcp'
+local type = '_rtsp._tcp'
+--local type = '_http._tcp'
 local port = 5500
 local name = 'conf0test'
 
@@ -60,6 +60,9 @@ execute{proc = conf0.connect, callback = function(res)
 				for k,v in pairs(j) do i[k] = v end
 				if i.opaqueport then
 					i.port = opaque2port(i.opaqueport)
+				end
+				if i.host then
+					i.addrs = conf0.gethostbyname{name = i.host}
 				end
 				if 'bonjour' == conf0.backend then
 					if j.host then

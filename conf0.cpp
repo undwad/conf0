@@ -34,6 +34,34 @@
 #include "luaM.h"
 
 #if defined(WIN32)
+#	include <winsock2.h>
+#else 
+#	include <socket.h>
+#endif
+
+luaM_func_begin(gethostbyname_)
+	luaM_reqd_param(string, name)
+	if(hostent* host = gethostbyname(name))
+	{
+		lua_newtable(L);
+		if(AF_INET == host->h_addrtype)
+		{
+			for (int  i = 0; host->h_addr_list[i]; i++)
+			{
+				in_addr addr;
+				addr.s_addr = *(unsigned long*)host->h_addr_list[i];
+				lua_pushinteger(L, i + 1);
+				lua_pushstring(L, inet_ntoa(addr));
+				lua_settable(L, -3);
+			}
+		}
+		return 1;
+	}
+	else
+		return luaL_error(L, "gethostbyname() failed");
+luaM_func_end
+
+#if defined(WIN32)
 #	include "dns_sd.h"
 #	pragma comment(lib, "dnssd.lib")
 #	pragma comment(lib, "ws2_32.lib")
@@ -791,6 +819,7 @@ void conf0_reg_types(lua_State *L) // query | query callback
 static const struct luaL_Reg lib[] =
 {
 	{"savestack", luaM_save_stack},
+	{"gethostbyname", gethostbyname_},
 	{"connect", connect},
 	{"browse", browse},
 	{"resolve", resolve},

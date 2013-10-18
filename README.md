@@ -52,6 +52,8 @@ conf0 module provides following functions:
 	
 	register_ - register new service,
 	
+	gethostbyname - proxy to berkley sockets gethostbyname,
+	
 	savestack - saves lua stack to file at provided path.
 	
 functions connect, browse, resolve, query and register_ have callback parameter. 
