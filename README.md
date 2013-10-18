@@ -23,8 +23,16 @@ so that lua could find it.
 
 common:
 all functions of the module use fake named parameters calling mechanism, 
-that is only one parameter (wich is lua table) is accepted
-conf0 module provides following functions
+that is only one parameter (wich is lua table) is accepted, like this:
+conf0.browse{type = '_http._tcp', callback = function(t) end}
+conf0 module provides following functions:
+	connect - connect to avahi service (on bonjour does nothing)
+	disconnect  - disconnects from avahi service (on bonjour does nothing)
+	iterate  - iterate connection
+	browse - browse network for services
+	resolve - resolve service name
+	query - query service record 
+	register_ - register new service
 
 folder output contains test script test.lua, you can look through it for more detailed information.
 
