@@ -50,9 +50,8 @@ local port = 5500
 local name = 'conf0test'
 
 
-local client = conf0.connect{callback = function(res)
-	local registrator = conf0.register_{ref = res.ref, type = type, name = name, port = port2opaque(port), callback = function(res) print(prettytostring(res)) end}
-
+execute{proc = conf0.connect, callback = function(res)
+	--local registrator = conf0.register_{ref = res.ref, type = type, name = name, port = port2opaque(port), callback = function(res) print(prettytostring(res)) end}
 	local items = {}
 	execute{proc = conf0.browse, ref = res.ref, type = type, callback = function(i) 
 		if i.name and i.type and i.domain and not items[i.name] then
@@ -76,10 +75,11 @@ local client = conf0.connect{callback = function(res)
 				return true
 			end}
 		end
-		return 'avahi' == conf0.backend and conf0.events.BROWSER_ALL_FOR_NOW == i.event_
+		if 'avahi' == conf0.backend and conf0.events.BROWSER_ALL_FOR_NOW == i.event_ then
+			conf0.disconnect{ref=res.ref}
+		end
 	end}
 end}
-
 
 	
 

@@ -95,6 +95,9 @@
 			return lua_error(L);
 	luaM_func_end
 
+	luaM_func_begin(disconnect)
+	luaM_func_end
+
 	luaM_func_begin(iterate)
 		luaM_reqd_param(userdata, ref)
 		luaM_opt_param(integer, timeout, 1000)
@@ -299,7 +302,8 @@
 		context_t* context = (context_t*)userdata; \
 		lua_State *L = context->L; \
 		lua_rawgeti(L, LUA_REGISTRYINDEX, context->callback); \
-		lua_newtable(L);
+		lua_newtable(L); \
+		luaM_setfield(-1, lightuserdata, ref, userdata)
 
 #	define conf0_callback_end(CALLBACK) \
 		if(lua_pcall(L, 1, 0, 0)) \
@@ -361,9 +365,9 @@
 
     luaM__gc(context_t)
 
-
 	conf0_callback_begin(client_callback, AvahiClient *client, AvahiClientState state)
-		luaM_setfield(-1, integer, clientstate, state)
+		luaM_setfield(-1, integer, state, state)
+		context->client = client; 
 	conf0_callback_end(client_callback)
 
 	luaM_func_begin(connect)
@@ -387,6 +391,11 @@
             delete context;
             return luaL_error(L, "avahi_simple_poll_new() failed");
         }
+	luaM_func_end
+
+	luaM_func_begin(disconnect)
+        luaM_reqd_param(userdata, ref)
+		avahi_simple_poll_quit(((context_t*)ref)->poll);
 	luaM_func_end
 
 	luaM_func_begin(iterate)
@@ -559,7 +568,10 @@
 		luaM_opt_param(integer, textlen, 0)
 		luaM_opt_param(string, text, nullptr)
 		luaM_reqd_param(function, callback)
+		printf("%x %d\n", ref, callback);
+		printf("%x %x %x %d\n", ref, ((context_t*)ref)->poll, ((context_t*)ref)->client, callback);
 		luaM_return_userdata(register_context_t, init, context, L, callback, (context_t*)ref)
+		printf("%x %x %x %x %d\n", ref, context, context->poll, context->client, callback);
 		conf0_call_dns_service(group, avahi_entry_group_new, context->client, group_callback, context)
 		if(text)
 		{
@@ -572,6 +584,7 @@
 			conf0_call_dns_service_proc(avahi_entry_group_add_service, context->group, interface_, protocol, flags, name, type, domain, host, port)
 		}
 		conf0_call_dns_service_proc(avahi_entry_group_commit, context->group)
+		printf("JODER\n");
 	luaM_func_end
 
     /* ENUMS */
@@ -793,6 +806,7 @@ static const struct luaL_Reg lib[] =
 	{"query", query},
 	{"register_", register_},
 	{"iterate", iterate},
+	{"disconnect", disconnect},
     {nullptr, nullptr},
 };
 
