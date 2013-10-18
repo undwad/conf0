@@ -65,7 +65,7 @@
 		return luaL_error(L, #FUNC "() failed with error %d", error); \
 	}
 
-	/* COMMON */
+	/* CONNECT */
 
 	struct context_t
 	{
@@ -83,6 +83,15 @@
 	};
 
 	luaM__gc(context_t)
+
+	luaM_func_begin(connect)
+		luaM_reqd_param(function, callback)
+		lua_rawgeti(L, LUA_REGISTRYINDEX, callback);
+		int error = lua_pcall(L, 0, 0, 0);
+		luaL_unref(L, LUA_REGISTRYINDEX, callback);
+		if(error)
+			return lua_error(L);
+	luaM_func_end
 
 	luaM_func_begin(iterate)
 		luaM_reqd_param(userdata, ref)
@@ -344,7 +353,7 @@
 
 
 	conf0_callback_begin(client_callback, AvahiClient *client, AvahiClientState state)
-		luaM_setfield(-1, integer, state, state)
+		luaM_setfield(-1, integer, clientstate, state)
 	conf0_callback_end(client_callback)
 
 #   define avahi_alloc_client() \
@@ -542,13 +551,10 @@
 		luaM_opt_param(integer, port, 0)
 		luaM_opt_param(integer, textlen, 0)
 		luaM_opt_param(string, text, nullptr)
-		luaM_opt_param(boolean, print_, false)
 		luaM_reqd_param(function, callback)
 		luaM_return_userdata(register_context_t, init, context, L, callback)
 		avahi_alloc_client()
 		conf0_call_dns_service(group, avahi_entry_group_new, context->client, group_callback, context)
-		if(print_)
-			printf("%x %x %d %d %d %s %s %s %s %d %s\n", context->client, context->group, interface_, protocol, flags, name, type, domain, host, port, text);
 		if(text)
 		{
 			AvahiStringList* list = avahi_string_list_add_arbitrary(nullptr, text, textlen);
@@ -775,6 +781,7 @@ void conf0_reg_types(lua_State *L) // query | query callback
 static const struct luaL_Reg lib[] =
 {
 	{"savestack", luaM_save_stack},
+	{"connect", connect},
 	{"browse", browse},
 	{"resolve", resolve},
 	{"query", query},
