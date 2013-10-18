@@ -36,7 +36,7 @@
 #if defined(WIN32)
 #	include <winsock2.h>
 #else 
-#	include <socket.h>
+#	include <sys/socket.h>
 #endif
 
 luaM_func_begin(gethostbyname_)
