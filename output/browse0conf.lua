@@ -105,6 +105,7 @@ return function(params)
 							end
 							return true -- returns true to tell execute method that the appropriate callback was successfuly called
 						end
+						browsed.flags = nil -- clear browse callback flags
 						conf0.execute(browsed) -- calls resolver
 					end
 				end
