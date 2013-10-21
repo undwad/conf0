@@ -31,6 +31,8 @@ if 'bonjour' == conf0.backend then
 
 elseif 'avahi' == conf0.backend then
 
+	function port2opaque(port) return port end
+
 else -- unknown backend value
 	error('invalid conf0 backend '..conf0.backend)
 end
@@ -114,20 +116,6 @@ return function(params)
 		end
 	} -- end calling conf0.connect 
 end
-
---		execute{ -- begin calling conf0.register_ 
---			proc = conf0.register_, -- service function to call
---			ref = res.ref, -- service reference
---			type = type, -- service type
---			name = name, -- service name
---			port = port2opaque(port), -- service port
---			callback = function(res) -- begin register callback
---				print('registering', prettytostring(res)) -- print result
---				-- check res.flags with conf0.flags on bonjour
---				-- check res.state with conf0.state on avahi
---			end -- end register callback
---		} -- end calling conf0.register_ 
---]]
 
 -- many functions have flags, interface, protocol etc. parameters that are set to default values
 -- check this in bonjour / avahi documentations and in conf0.flags, conf0.interfaces, conf0.protocols etc.
