@@ -2,6 +2,18 @@ require 'conf0'
  
 local function testflag(set, flag) return set % (2 * flag) >= flag end
 
+local function text2list(text, textlen)
+	if not textlen then textlen = string.len(text) end
+	local list = {}
+	local i = 1
+	while i <= textlen do
+		local len = string.byte(text[i])
+		if len > 0 then list[#list + 1] = string.sub(text, i + 1, i + len) end
+		i = i + len + 1
+	end
+	return list
+end
+
 if 'avahi' == conf0.backend then
 elseif 'bonjour' == conf0.backend then
 	local byte = string.byte
@@ -36,6 +48,7 @@ elseif 'bonjour' == conf0.backend then
 				browsed.flags = nil
 				browsed.callback = function(resolved)
 					for k,v in pairs(resolved) do browsed[k] = v end
+					browsed.list = text2list(browsed.text)
 					browsed.port = opaque2port(browsed.opaqueport)		
 					local query
 					query = conf0.query{fullname = browsed.host, type = conf0.types.A, class_ = conf0.classes.IN, callback = function(result)
