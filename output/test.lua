@@ -14,6 +14,8 @@ local name = 'conf0test' -- name of service to register
 
 list = {}
 
+debug.sethook(function (event, line) print(debug.getinfo(2).short_src .. ":" .. line) end, "l")
+
 while true do
 	browse{type = type, callback = function(svc)
 		pprint(svc)
