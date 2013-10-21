@@ -16,6 +16,7 @@ list = {}
 
 while true do
 	browse{type = type, callback = function(svc)
+		pprint(svc)
 		if svc.new then
 			if svc.ip then
 				list[svc.name] = svc
