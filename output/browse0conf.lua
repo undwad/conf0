@@ -31,6 +31,7 @@ if 'avahi' == conf0.backend then
 					if callback(browsed) then
 						local resolver
 						browsed.flags = nil
+						browsed.ref = connected.ref
 						browsed.callback = function(resolved)
 							for k,v in pairs(resolved) do browsed[k] = v end
 							browsed.list = text2list(browsed.text)
