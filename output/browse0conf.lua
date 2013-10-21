@@ -15,11 +15,39 @@ local function text2list(text, textlen)
 end
 
 if 'avahi' == conf0.backend then
+	return function(params)
+		local connection = conf0.connect{callback = function(connected)
+			local callback = params.callback
+			params.ref = connected.ref
+			params.callback = function(browsed)
+				if conf0.events.BROWSER_CACHE_EXHAUSTED == browsed.event_ then
+				elseif conf0.events.BROWSER_ALL_FOR_NOW == browsed.event_ then
+					conf0.disconnect{ref = connected.ref}
+				else
+					browsed.new = conf0.events.BROWSER_NEW == browsed.event_
+					browsed.remove = conf0.events.BROWSER_REMOVE == browsed.event_
+					browsed.error = conf0.events.BROWSER_FAILURE == browsed.event_
+					browsed.callback = nil
+					if callback(browsed) then
+						local resolver
+						browsed.flags = nil
+						browsed.callback = function(resolved)
+							for k,v in pairs(resolved) do browsed[k] = v end
+							browsed.list = text2list(browsed.text)
+							browsed.error = conf0.events.RESOLVER_FAILURE == browsed.event_
+							callback(browsed)
+						end
+						local resolver = conf0.resolve(browsed)
+					end
+				end
+			end
+			local browser = conf0.browse(params)
+		end}
+		while connection and conf0.iterate{ref = connection} do end
+	end
 elseif 'bonjour' == conf0.backend then
 	local byte = string.byte
-
 	local function inet_ntoa(addr) return byte(addr[1])..'.'..byte(addr[2])..'.'..byte(addr[3])..'.'..byte(addr[4]) end
-
 	local function tobytes(value, num)
 		local bytes = ""
 		num = num or 4
@@ -29,12 +57,10 @@ elseif 'bonjour' == conf0.backend then
 		end
 		return bytes
 	end
-
 	local function opaque2port(port)
 		local bytes = tobytes(port)
 		return byte(bytes, 4) * 256 + byte(bytes, 3)
 	end
-
 	return function(params)
 		if 'table' ~= type(params) then error('function only accepts single parameter of type table') end
 		if 'function' ~= type(params.callback) then error('callback named parameter missing') end
@@ -63,7 +89,6 @@ elseif 'bonjour' == conf0.backend then
 				resolver = conf0.resolve(browsed)
 				while resolver and conf0.iterate{ref = resolver} do end
 			end
-			
 		end
 		local browser = conf0.browse(params)
 		while browser and conf0.iterate{ref = browser} do end
