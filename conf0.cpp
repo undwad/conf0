@@ -157,8 +157,18 @@
 		luaM_setfield(-1, string, fullname, fullname)
 		luaM_setfield(-1, string, host, host)
 		luaM_setfield(-1, integer, opaqueport, opaqueport)
-		luaM_setfield(-1, integer, textlen, textlen)
-		luaM_setfield(-1, lstring, text, (const char*)text, textlen)
+		lua_newtable(L);
+		for(int i = 0, index = 0; i < textlen; i++)
+		{
+			int len = text[i];
+			if(text[i] > 0)
+			{
+				lua_pushlstring(L, (char*)text + i + 1, len);
+				lua_rawseti(L, -2, ++index);
+				i += len;
+			}
+		}
+		lua_setfield(L, -2, "texts");
 	conf0_callback_end(resolve_callback)
 
 	luaM_func_begin(resolve)

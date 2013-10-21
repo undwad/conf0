@@ -51,8 +51,8 @@ function execute(params)
 	return ref -- returns service reference
 end
 
---local type = '_rtsp._tcp'
-local type = '_http._tcp'
+local type = '_rtsp._tcp'
+--local type = '_http._tcp'
 local port = 5500 -- port of service to register
 local name = 'conf0test' -- name of service to register
 
