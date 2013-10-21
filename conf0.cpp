@@ -61,10 +61,7 @@
 # define conf0_call_dns_service(FUNC, ...) \
 	int error = FUNC(__VA_ARGS__); \
 	if(kDNSServiceErr_NoError != error) \
-	{ \
-		delete context; \
-		return luaL_error(L, #FUNC "() failed with error %d", error); \
-	}
+		return luaL_error(L, #FUNC "() failed with error %d", error); 
 
 	/* CONNECT */
 
@@ -328,17 +325,11 @@
 #	define conf0_call_dns_service(RESULT, FUNC, ...) \
 		context->RESULT = FUNC(__VA_ARGS__); \
 		if(!context->RESULT) \
-		{ \
-			delete context; \
-			return luaL_error(L, avahi_strerror(avahi_client_errno(context->client))); \
-		}
+			return luaL_error(L, avahi_strerror(avahi_client_errno(context->client))); 
 
 #	define conf0_call_dns_service_proc(PROC, ...) \
 		if(PROC(__VA_ARGS__) < 0) \
-		{ \
-			delete context; \
-			return luaL_error(L, avahi_strerror(avahi_client_errno(context->client))); \
-		}
+			return luaL_error(L, avahi_strerror(avahi_client_errno(context->client))); 
 
 	/* CONNECT */
 
@@ -393,16 +384,10 @@
             {
             }
             else
-            {
-                delete context;
                 return luaL_error(L, avahi_strerror(error));
-            }
         }
         else
-        {
-            delete context;
             return luaL_error(L, "avahi_simple_poll_new() failed");
-        }
 	luaM_func_end
 
 	luaM_func_begin(disconnect)

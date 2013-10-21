@@ -32,19 +32,22 @@ connection = conf0.execute{ -- begin calling conf0.connect
 list = {}
 
 while true do
-	browse{type = type, callback = function(svc)
-		if svc.new then
-			if svc.ip then
-				list[svc.name] = svc
-				svc.index = table.size(list)
-				pprint(svc)
-			else return not list[svc.name] end
-		elseif svc.remove then
-			list[svc.name] = nil
-			print('service '..svc.name..' removed')
-		elseif svc.error then
-			print('resolving service '..svc.name..' failed')
-		end
-	end}
+	local s,e = pcall(function()
+		browse{type = type, callback = function(svc)
+			if svc.new then
+				if svc.ip then
+					list[svc.name] = svc
+					svc.index = table.size(list)
+					pprint(svc)
+				else return not list[svc.name] end
+			elseif svc.remove then
+				list[svc.name] = nil
+				print('service '..svc.name..' removed')
+			elseif svc.error then
+				print('resolving service '..svc.name..' failed')
+			end
+		end}
+	end)
+	if not s then print(e) end
 end
 
