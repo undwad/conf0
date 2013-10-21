@@ -80,79 +80,39 @@ return function(params)
 						end
 					end
 					if callback(browsed) then
+						browsed.proc = conf0.resolve -- service function to call
+						browsed.ref = connection.ref -- service reference
+						browsed.callback = function(resolved) -- callback for browser
+							for k,v in pairs(resolved) do browsed[k] = v end -- copy all fields of resolve result into browse result
+							if 'bonjour' == conf0.backend then -- on bonjour
+								browsed.port = opaque2port(browsed.opaqueport) -- we need to decode opaque port value
+								-- now we need to query for ip address
+								conf0.execute{ -- begin calling conf0.query 
+									proc = conf0.query, -- service function to call
+									fullname = browsed.host, -- record name is host name for this request
+									type = conf0.types.A, -- record type for address (see conf0.types)
+									class_ = conf0.classes.IN, -- record class (see conf0.classes)
+									callback = function(record) -- begin query callback
+										browsed.ip = inet_ntoa(record.data) -- converts ip address to string
+										browsed.error = record.error -- pass possible record error to user callback
+										callback(browsed) -- now we are done with this service
+										return true -- returns true to tell execute method that the appropriate callback was successfuly called
+									end -- end query callback
+								} -- end calling conf0.query 
+							elseif 'avahi' == conf0.backend then -- on avahi
+								browsed.error = conf0.events.RESOLVER_FAILURE == browsed.event_ -- we need to check for resolve error
+								callback(browsed) -- since avahi resolves ip address now we are done with this service
+							end
+							return true -- returns true to tell execute method that the appropriate callback was successfuly called
+						end
+						conf0.execute(browsed) -- calls resolver
 					end
-
+				end
 				conf0.execute(params) -- calls browser
 			end
 		end
 	} -- end calling conf0.connect 
 end
-
---[[
-execute{ -- begin calling conf0.connect 
-	proc = conf0.connect, -- service function to call
-	callback = function(res) -- required conf0.connect callback
-		local items = {} -- table for browsable services
-		execute{ -- begin calling conf0.browse 
-			proc = conf0.browse, -- service function to call
-			ref = res.ref, -- service reference
-			type = type, -- service type
-			callback = function(i) -- begin browse callback
-				-- if browse result is valid service and yet isn't reported 
-				if i.name and i.type and i.domain and not items[i.name] then 
-					items[i.name] = i -- then store its info in the table
-					execute{ -- begin calling conf0.resolve 
-						proc = conf0.resolve, -- service function to call
-						ref = res.ref, -- service reference
-						interface_ = i.interface_, -- service interface
-						protocol = i.protocol, -- service protocol
-						name = i.name, -- service name
-						type = i.type, -- service type
-						domain = i.domain, -- service domain
-						callback = function(j) -- begin resolve callback
-							for k,v in pairs(j) do i[k] = v end -- copy all fields of resolve result into query result
-							if i.opaqueport then -- if has opaque port 
-								i.port = opaque2port(i.opaqueport) -- then we need to decode it
-							end
-							-- since avahi resolves ip address
-							-- we need to query service record for ip address only on bonjour
-							if 'bonjour' == conf0.backend then -- on bonjour
-								if j.host then
-									execute{ -- begin calling conf0.query 
-										proc = conf0.query, -- service function to call
-										ref = res.ref, -- service reference
-										fullname = j.host, -- record name is host name for this request
-										type = conf0.types.A, -- record type for address (see conf0.types)
-										class_ = conf0.classes.IN, -- record class (see conf0.classes)
-										callback = function(k) -- begin query callback
-											i.ip = inet_ntoa(k.data) -- converts ip address to string
-											print(prettytostring(i)) -- we can print service info right now
-											return true -- returns true to tell execute method that the appropriate callback was successfuly called
-										end -- end query callback
-									} -- end calling conf0.query 
-								end
-							else -- on avahi
-								print(prettytostring(i)) -- we can print service info right now
-							end
-							return true -- returns true to tell execute method that the appropriate callback was successfuly called
-						end -- begin resolve callback
-					} -- end calling conf0.resolve 
-				end
-				-- on avahi we need to stop iteration manually
-				if 'avahi' == conf0.backend and conf0.events.BROWSER_ALL_FOR_NOW == i.event_ then
-					conf0.disconnect{ -- calling conf0.disconnect 
-						ref=res.ref -- service reference
-					}
-				end
-			end -- end browse callback
-		} -- end calling conf0.browse 
-	end
-} -- end calling conf0.connect 
-
-
-							--browsed.error = conf0.events.RESOLVER_FAILURE == browsed.event_
-
-
 
 --		execute{ -- begin calling conf0.register_ 
 --			proc = conf0.register_, -- service function to call
