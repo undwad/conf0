@@ -161,7 +161,7 @@
 		for(int i = 0, index = 0; i < textlen; i++)
 		{
 			int len = text[i];
-			if(text[i] > 0)
+			if(len > 0)
 			{
 				lua_pushlstring(L, (char*)text + i + 1, len);
 				lua_rawseti(L, -2, ++index);
@@ -486,7 +486,14 @@
 		luaM_setfield(-1, string, domain, domain)
 		luaM_setfield(-1, string, host, host)
 		luaM_setfield(-1, integer, port, port)
-		luaM_setfield(-1, string, text, avahi_string_list_to_string(txt))
+		lua_newtable(L);
+		lua_newtable(L);
+		for(int index = 0; txt; txt = avahi_string_list_get_next(txt))
+		{
+			lua_pushlstring(L, avahi_string_list_get_text(txt), avahi_string_list_get_size(txt));
+			lua_rawseti(L, -2, ++index);
+		}
+		lua_setfield(L, -2, "texts");
 		if(address)
 		{
 			luaM_setfield(-1, integer, protocol, address->proto)
