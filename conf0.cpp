@@ -487,7 +487,6 @@
 		luaM_setfield(-1, string, host, host)
 		luaM_setfield(-1, integer, port, port)
 		lua_newtable(L);
-		lua_newtable(L);
 		for(int index = 0; txt; txt = avahi_string_list_get_next(txt))
 		{
 			lua_pushlstring(L, avahi_string_list_get_text(txt), avahi_string_list_get_size(txt));
