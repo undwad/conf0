@@ -71,7 +71,7 @@ return function(params)
 						if conf0.events.BROWSER_CACHE_EXHAUSTED == browsed.event_ then -- almost done
 							return false -- stop callback execution but not connection iteration
 						elseif conf0.events.BROWSER_ALL_FOR_NOW == browsed.event_ then -- done
-							conf0.disconnect{ref = connected.ref} -- on avahi we need to stop iteration manually
+							conf0.disconnect{ref = connection.ref} -- on avahi we need to stop iteration manually
 							return true -- stop callback execution and connection iteration
 						else -- service browsed
 							browsed.new = conf0.events.BROWSER_NEW == browsed.event_ -- new service
