@@ -56,14 +56,33 @@ return function(params)
 	if 'table' ~= type(params) then error('function only accepts single parameter of type table') end
 	if 'function' ~= type(params.callback) then error('callback named parameter missing') end
 	local callback = params.callback -- saves user callback since we will use params as conf0.browse argument
-	params.callback = function(browsed)
-	end
 	conf0.execute{ -- begin calling conf0.connect 
 		proc = conf0.connect, -- service function to call
 		callback = function(connection) -- required conf0.connect callback
 			-- checks connection state
 			if connection and ('bonjour' == conf0.backend or ('avahi' == conf0.backend and conf0.states.CLIENT_S_RUNNING == connection.state)) then
-				print(connection)
+				params.proc = conf0.browse -- service function to call
+				params.ref = connection.ref -- service reference
+				params.callback = function(browsed) -- callback for browser
+					if 'bonjour' == conf0.backend then -- checks bonjour flags
+						browsed.new = testflag(browsed.flags, conf0.flags.Add) -- new service
+						browsed.remove = not browsed.new -- removed service
+					elseif 'avahi' == conf0.backend then -- checks avahi event
+						if conf0.events.BROWSER_CACHE_EXHAUSTED == browsed.event_ then -- almost done
+							return false -- stop callback execution but not connection iteration
+						elseif conf0.events.BROWSER_ALL_FOR_NOW == browsed.event_ then -- done
+							conf0.disconnect{ref = connected.ref} -- on avahi we need to stop iteration manually
+							return true -- stop callback execution and connection iteration
+						else -- service browsed
+							browsed.new = conf0.events.BROWSER_NEW == browsed.event_ -- new service
+							browsed.remove = conf0.events.BROWSER_REMOVE == browsed.event_ -- removed service
+							browsed.error = conf0.events.BROWSER_FAILURE == browsed.event_ -- service browsing error
+						end
+					end
+					if callback(browsed) then
+					end
+
+				conf0.execute(params) -- calls browser
 			end
 		end
 	} -- end calling conf0.connect 
@@ -130,16 +149,6 @@ execute{ -- begin calling conf0.connect
 	end
 } -- end calling conf0.connect 
 
-		--browsed.new = testflag(browsed.flags, conf0.flags.Add)
-		--browsed.remove = not browsed.new
-
-				--if conf0.events.BROWSER_CACHE_EXHAUSTED == browsed.event_ then
-				--elseif conf0.events.BROWSER_ALL_FOR_NOW == browsed.event_ then
---					conf0.disconnect{ref = connected.ref}
-	--			else
-		--			browsed.new = conf0.events.BROWSER_NEW == browsed.event_
-			--		browsed.remove = conf0.events.BROWSER_REMOVE == browsed.event_
-			--		browsed.error = conf0.events.BROWSER_FAILURE == browsed.event_
 
 							--browsed.error = conf0.events.RESOLVER_FAILURE == browsed.event_
 

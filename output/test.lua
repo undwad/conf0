@@ -1,7 +1,10 @@
 require 'std' -- load lua standard library for pretty printing etc.
-browse = require 'browse0conf' -- load browse0conf module
 
-print(prettytostring(conf0)) -- print conf0 module to see what we have
+pprint = function(arg) print(prettytostring(arg)) end
+
+browse = require 'browse0conf' -- load browse function from browse0conf module
+
+pprint(conf0) -- print conf0 module to see what we have
 
 
 local type = '_rtsp._tcp'
@@ -9,7 +12,22 @@ local type = '_rtsp._tcp'
 local port = 5500 -- port of service to register
 local name = 'conf0test' -- name of service to register
 
-browse{type = type, callback = function(svc)
+list = {}
 
-end}
+while true do
+	browse{type = type, callback = function(svc)
+		if svc.new then
+			if svc.ip then
+				list[svc.name] = svc
+				svc.index = table.size(list)
+				pprint(svc)
+			else return not list[svc.name] end
+		elseif svc.remove then
+			list[svc.name] = nil
+			print('service '..svc.name..' removed')
+		elseif svc.error then
+			print('resolving service '..svc.name..' failed')
+		end
+	end}
+end
 
