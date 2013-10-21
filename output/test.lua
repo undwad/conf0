@@ -9,7 +9,7 @@ pprint(conf0) -- print conf0 module to see what we have
 local type = '_rtsp._tcp'
 --local type = '_http._tcp'
 
----[[ custom service registration example
+--[[ custom service registration example
 
 connection = conf0.execute{ -- begin calling conf0.connect 
 	proc = conf0.connect, -- service function to call
