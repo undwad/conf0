@@ -225,11 +225,44 @@
 		luaM_opt_param(string, domain, nullptr)
 		luaM_opt_param(string, host, nullptr)
 		luaM_opt_param(integer, port, 0)
-		luaM_opt_param(integer, textlen, 1)
-		luaM_opt_param(string, text, "\0")
+		luaM_opt_param(table, texts, LUA_NOREF)
+		char* text = nullptr;
+		int textlen = 0;
+		if(LUA_NOREF != texts)
+		{
+			lua_rawgeti(L, LUA_REGISTRYINDEX, texts); 
+			int len = lua_rawlen(L, -1);
+			if(len > 0)
+			{
+				text = (char*)malloc(len * 256);
+				textlen = 0;
+				for(int i = 1; i <= len; i++)
+				{
+					lua_rawgeti(L, -1, i);
+					if(lua_isstring(L, -1))
+					{
+						size_t slen = 0;
+						const char* s = lua_tolstring(L, -1, &slen);
+						if(s && slen > 0 && slen < 256)
+						{
+							text[textlen] = slen;
+							textlen++;
+							memcpy(text + textlen, s, slen);
+							textlen += slen;
+						}
+					}
+					lua_pop(L, 1);
+				}
+			}
+			lua_pop(L, 1);
+		}
 		luaM_reqd_param(function, callback)
 		luaM_return_userdata(context_t, context_t, context, L, callback)
 		conf0_call_dns_service(DNSServiceRegister, &context->ref, (DNSServiceFlags)flags, interface_, name, type, domain, host, port, textlen, text, register_callback, context)
+		if(LUA_NOREF != texts)
+			luaL_unref(L, LUA_REGISTRYINDEX, texts);
+		if(text)
+			free(text);
 	luaM_func_end
 
     /* ENUMS */

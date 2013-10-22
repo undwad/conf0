@@ -20,6 +20,7 @@ connection = conf0.execute{ -- begin calling conf0.connect
 			type = type, -- service type
 			name = 'conf0test', -- service name
 			port = port2opaque(5500), -- service port
+			texts = {'sample text', 'key=value'}, -- service texts
 			callback = function(registered) -- begin register callback
 				pprint(registered) -- print result
 			end -- end register callback
