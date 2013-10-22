@@ -4,7 +4,7 @@ pprint = function(arg) print(prettytostring(arg)) end
 
 browse = require 'browse0conf' -- load browse function from browse0conf module
 
---pprint(conf0) -- print conf0 module to see what we have
+pprint(conf0) -- print conf0 module to see what we have
 
 local type = '_rtsp._tcp'
 --local type = '_http._tcp'
