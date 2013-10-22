@@ -67,18 +67,26 @@
 
 	struct context_t
 	{
+		static int count;
+
 		lua_State* L;
 		int callback;
 		DNSServiceRef ref;
-		context_t(lua_State* L_, int callback_) : L(L_), callback(callback_), ref(nullptr) { }
+		context_t(lua_State* L_, int callback_) : L(L_), callback(callback_), ref(nullptr) 
+		{ 
+			printf("context_t(%d) => %d\n", callback, ++count);
+		}
 		~context_t()
 		{
 			if(LUA_NOREF != callback)
 				luaL_unref(L, LUA_REGISTRYINDEX, callback);
 			if(ref)
 				DNSServiceRefDeallocate(ref);
+			printf("~context_t() => %d\n", --count);
 		}
 	};
+
+	int context_t::count = 0;
 
 	luaM__gc(context_t)
 

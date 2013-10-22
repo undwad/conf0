@@ -9,7 +9,7 @@ pprint(conf0) -- print conf0 module to see what we have
 local type = '_rtsp._tcp'
 --local type = '_http._tcp'
 
---[[ custom service registration example
+---[[ custom service registration example
 
 connection = conf0.execute{ -- begin calling conf0.connect 
 	proc = conf0.connect, -- service function to call
@@ -28,6 +28,7 @@ connection = conf0.execute{ -- begin calling conf0.connect
 }
 
 --]]
+---[[
 
 list = {}
 
@@ -36,6 +37,7 @@ while true do
 		browse{type = type, callback = function(svc)
 			if svc.new then
 				if svc.ip then
+					svc.ref = nil
 					list[svc.name] = svc
 					svc.index = table.size(list)
 					pprint(svc)
@@ -49,5 +51,7 @@ while true do
 		end}
 	end)
 	if not s then print(e) end
+	collectgarbage()
 end
 
+--]]
