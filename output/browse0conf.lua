@@ -49,6 +49,7 @@ function conf0.execute(params)
 	ref = params.proc(params) -- executes service function
 	if not params.ref then -- if succeeded and while 
 		while ref and conf0.iterate{ref=ref} do end
+		ref = nil
 	end
 	return ref -- returns service reference
 end
