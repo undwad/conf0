@@ -609,15 +609,41 @@
 		luaM_opt_param(string, domain, nullptr)
 		luaM_opt_param(string, host, nullptr)
 		luaM_opt_param(integer, port, 0)
-		luaM_opt_param(integer, textlen, 1)
-		luaM_opt_param(string, text, "\0")
+		luaM_opt_param(table, texts, LUA_NOREF)
+		char* text = "\0";
+		int textlen = 1;
+		AvahiStringList* list = nullptr;
+		if(LUA_NOREF == texts)
+			list = avahi_string_list_add_arbitrary(nullptr, "\0", 1);
+		else
+		{
+			lua_rawgeti(L, LUA_REGISTRYINDEX, texts); 
+			int len = lua_rawlen(L, -1);
+			if(len > 0)
+			{
+				for(int i = 1; i <= len; i++)
+				{
+					lua_rawgeti(L, -1, i);
+					if(lua_isstring(L, -1))
+					{
+						size_t slen = 0;
+						const char* s = lua_tolstring(L, -1, &slen);
+						if(s && slen > 0 && slen < 256)
+							list = avahi_string_list_add_arbitrary(list, (const unsigned char*)s, slen);
+					}
+					lua_pop(L, 1);
+				}
+			}
+			lua_pop(L, 1);
+		}		
 		luaM_reqd_param(function, callback)
 		luaM_return_userdata(register_context_t, init, context, L, callback, (context_t*)ref)
 		conf0_call_dns_service(group, avahi_entry_group_new, context->client, group_callback, context)
-		AvahiStringList* list = avahi_string_list_add_arbitrary(nullptr, text, textlen);
 		conf0_call_dns_service_proc(avahi_entry_group_add_service_strlst, context->group, interface_, protocol, flags, name, type, domain, host, port, list)
 		avahi_string_list_free(list);
 		conf0_call_dns_service_proc(avahi_entry_group_commit, context->group)
+		if(LUA_NOREF != texts)
+			luaL_unref(L, LUA_REGISTRYINDEX, texts);
 	luaM_func_end
 
     /* ENUMS */
