@@ -58,9 +58,9 @@ each callback accepts one argument which is also lua table, that contains servic
 possible values of parameters class_, error, event_, flags, protocol, state and type can be found in 
 conf0.classes, conf0.errors, conf0.events, conf0.flags, conf0.protocols, conf0.states and conf0.types enumerations.
 
-unfortunately bonjour and avahi are not so similar so you should take note of its differences when using conf0,
+unfortunately bonjour and avahi are not so similar so you should take note of their differences when using conf0,
 because of this conf0 has conf0.backend parameter that can contain 'bonjour' or 'avahi' string.
 
-you can look through output/test.lua sample script for more detailed information.
+you can look through output/test.lua and output/browse0conf.lua sample scripts for more detailed information.
 
 2013.10.18 14.12.01 undwad, samara, russia
