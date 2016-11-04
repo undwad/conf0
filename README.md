@@ -1,6 +1,6 @@
 # conf0
 
-crossplatform (**bonjour** (windows/osx), **avahi**(linux)) zeroconf(dnssd) module for lua 5.2
+**crossplatform (bonjour (windows/osx), avahi(linux)) zeroconf(dnssd) module for lua 5.2**
 
 conf0 allow lua code to browse network for devices, query device parameters (for example ip:port) and register new services.
 
@@ -34,33 +34,33 @@ so that lua could find it.
 
 all functions of the module use fake named parameters calling mechanism, 
 that is only one parameter (wich is lua table) is accepted, like this:
-conf0.browse{type = '_http._tcp', callback = function(t) end}
+`conf0.browse{type = '_http._tcp', callback = function(t) end}`
 
 conf0 module provides following functions:
 
-	connect - connect to avahi service (on bonjour does nothing),
+	`connect` - connect to avahi service (on bonjour does nothing),
 	
-	disconnect  - disconnects from avahi service (on bonjour does nothing),
+	`disconnect`  - disconnects from avahi service (on bonjour does nothing),
 	
-	iterate  - iterate connection,
+	`iterate`  - iterate connection,
 	
-	browse - browse network for services,
+	`browse` - browse network for services,
 	
-	resolve - resolve service name,
+	`resolve` - resolve service name,
 	
-	query - query service record, 
+	`query` - query service record, 
 	
-	register_ - register new service.
+	`register_` - register new service.
 	
-functions connect, browse, resolve, query and register_ have callback parameter. 
+functions `connect`, `browse`, `resolve`, `query` and `register_` have `callback` parameter. 
 each callback accepts one argument which is also lua table, that contains service callback parameters.
 
-possible values of parameters class_, error, event_, flags, protocol, state and type can be found in 
-conf0.classes, conf0.errors, conf0.events, conf0.flags, conf0.protocols, conf0.states and conf0.types enumerations.
+possible values of parameters `class_`, `error`, `event_`, `flags`, `protocol`, `state` and `type` can be found in 
+`conf0.classes`, `conf0.errors`, `conf0.events`, `conf0.flags`, `conf0.protocols`, `conf0.states` and `conf0.types` enumerations.
 
 unfortunately bonjour and avahi are not so similar so you should take note of their differences when using conf0,
-because of this conf0 has conf0.backend parameter that can contain 'bonjour' or 'avahi' string.
+because of this conf0 has `conf0.backend` parameter that can contain `bonjour` or `avahi` string.
 
-you can look through output/test.lua and output/browse0conf.lua sample scripts for more detailed information.
+you can look through **output/test.lua** and **output/browse0conf.lua** sample scripts for more detailed information.
 
 2013.10.18 14.12.01 undwad, samara, russia
