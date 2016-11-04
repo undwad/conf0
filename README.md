@@ -1,10 +1,10 @@
-conf0
-=====
-crossplatform (bonjour (windows/osx), avahi(linux)) zeroconf(dnssd) module for lua 5.2
+# conf0
+
+crossplatform (**bonjour** (windows/osx), **avahi**(linux)) zeroconf(dnssd) module for lua 5.2
 
 conf0 allow lua code to browse network for devices, query device parameters (for example ip:port) and register new services.
 
-WINDOWS:
+## WINDOWS
 
 conf0 depends on apple bonjour sdk that can be downloaded from https://developer.apple.com/bonjour/
 
@@ -18,7 +18,7 @@ if you have incompatible version of visual studio then simply create new dynamic
 add project source and header files, module definition file and libraries.
 anyway CMakeLists.txt is provided so it is possible to use cmake.
 
-LINUX:
+## LINUX
 
 conf0 depends on avahi (ubuntu 13 by default only misses livavahi-ui-dev that can be installed with apt-get).
 
@@ -30,7 +30,7 @@ unfortunately I don't how to configure cmake to produce libraries without lib pr
 so after building libconf0.so module you need either rename it to conf0.so or create appropriate symbolic link,
 so that lua could find it.
 
-COMMON:
+## COMMON
 
 all functions of the module use fake named parameters calling mechanism, 
 that is only one parameter (wich is lua table) is accepted, like this:

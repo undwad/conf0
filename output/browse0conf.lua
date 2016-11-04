@@ -3,7 +3,7 @@ require 'conf0' -- load conf0 module
 -- tests if flag is set
 function testflag(set, flag) return set % (2 * flag) >= flag end
 
--- we the following only on bonjour since avahi does not use opaque port and resolves service ip
+-- we need the following only on bonjour since avahi does not use opaque port and resolves service ip
 if 'bonjour' == conf0.backend then
 	
 	-- converts address as integer to string in the form of ip
@@ -32,13 +32,26 @@ if 'bonjour' == conf0.backend then
 elseif 'avahi' == conf0.backend then
 
 	function port2opaque(port) return port end
-
+	
 else -- unknown backend value
+
 	error('invalid conf0 backend '..conf0.backend)
+	
 end
+
+local procnames = {
+	[conf0.connect] = 'connect',
+	[conf0.disconnect] = 'disconnect',
+	[conf0.iterate] = 'iterate',
+	[conf0.browse] = 'browse',
+	[conf0.resolve] = 'resolve',
+	[conf0.query] = 'query',
+	[conf0.register_] = 'register_'
+}
 
 -- executes service function and wait for callback
 function conf0.execute(params)
+	--print(procnames[params.proc], 'begin', params.ref)
 	local ref -- variable for service reference
 	local callback = params.callback -- saves callback passed by user
 	params.callback = function(res) -- new local callback proc
@@ -48,9 +61,13 @@ function conf0.execute(params)
 	end
 	ref = params.proc(params) -- executes service function
 	if not params.ref then -- if succeeded and while 
-		while ref and conf0.iterate{ref=ref} do end
+		while ref do 
+			--print(procnames[params.proc], 'iterate', ref) 
+			conf0.iterate{ref=ref}
+		end
 		ref = nil
 	end
+	--print(procnames[params.proc], 'end', ref)
 	return ref -- returns service reference
 end
 
