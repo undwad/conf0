@@ -61,6 +61,10 @@ possible values of parameters `class_`, `error`, `event_`, `flags`, `protocol`, 
 unfortunately bonjour and avahi are not so similar so you should take note of their differences when using conf0,
 because of this conf0 has `conf0.backend` parameter that can contain `bonjour` or `avahi` string.
 
-you can look through **output/test.lua** and **output/browse0conf.lua** sample scripts for more detailed information.
+for more detailed information you can look through:
+- ~~**output/test.lua**~~
+- **output/test_browse.lua** - browsing for services example
+- **output/test_register.lua** - registering a sevice example
+- **output/browse0conf.lua** - lua helper functions used in examples
 
-2013.10.18 14.12.01 undwad, samara, russia
+2013.10.18 14.12.01 - 2016.11.04 15.32.39 undwad, samara, russia 
