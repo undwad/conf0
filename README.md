@@ -20,7 +20,7 @@ anyway **CMakeLists.txt** is provided so it is possible to use cmake.
 
 ## LINUX
 
-conf0 depends on avahi (ubuntu 13 by default only misses **livavahi-ui-dev** that can be installed with apt-get).
+conf0 depends on avahi (ubuntu 13 by default only misses **libavahi-ui-dev** that can be installed with apt-get).
 
 also conf0 depends on *lua5.2* and *liblua5.2* that can be installed with apt-get.
 
