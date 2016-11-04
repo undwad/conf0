@@ -48,3 +48,5 @@ lua11dump.txt
 *.dll
 *.lib
 *.bat
+*.ipdb
+*.opendb
